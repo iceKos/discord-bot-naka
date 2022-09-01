@@ -1,0 +1,139 @@
+const express = require('express')
+const dotenv = require('dotenv');
+dotenv.config();
+// Require the necessary discord.js classes
+const { Client, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes } = require('discord.js');
+const { REST } = require('@discordjs/rest');
+const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, WELLCOME_CHANNEL_ID } = process.env;
+const app = express()
+const port = 3000
+
+// Create a new client instance
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+app.get('/', (req, res) => {
+    res.send('Hello World!')
+})
+
+app.listen(port, () => {
+    // Login to Discord with your client's DISCORD_TOKEN
+    client.login(DISCORD_TOKEN)
+        .then(() => {
+
+            // register command to bot discord
+            const commands = [
+                new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
+                new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
+                new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),
+                new SlashCommandBuilder()
+                    .setName('link_account')
+                    .setDescription('Asks you a series of questions!')
+                //.addStringOption(option => option.setName('input').setDescription('Your email?').setRequired(true))
+
+            ]
+                .map(command => command.toJSON());
+
+            const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+
+            rest.put(Routes.applicationGuildCommands(APP_ID, GUILD_ID), { body: commands })
+                .then((data) => console.log(`Successfully registered ${data.length} application commands.`))
+                .catch(console.error);
+
+            // handle interaction listen
+            client.on('interactionCreate', async interaction => {
+                if (interaction.isChatInputCommand()) {
+                    const { commandName } = interaction;
+                    const string = interaction.options.getString('input');
+
+                    if (commandName === 'ping') {
+                        await interaction.reply('Pong!');
+                    } else if (commandName === 'server') {
+                        await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
+                    } else if (commandName === 'user') {
+                        await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
+                    } else if (commandName === 'link_account') {
+                        const modal = new ModalBuilder()
+                            .setCustomId('nakamoto-email-modal')
+                            .setTitle('Nakamoto');
+
+                        // Create the text input components
+                        const favoriteColorInput = new TextInputBuilder()
+                            .setCustomId('emailNakamoto')
+                            // The label is the prompt the user sees for this input
+                            .setLabel("What's your email in nakamoto.games ?")
+                            // Short means only a single line of text
+                            .setStyle(TextInputStyle.Short);
+
+                        // An action row only holds one text input,
+                        // so you need one action row per text input.
+                        const firstActionRow = new ActionRowBuilder().addComponents(favoriteColorInput);
+
+                        // Add inputs to the modal
+                        modal.addComponents(firstActionRow);
+                        await interaction.showModal(modal)
+                    }
+                } else if (interaction.isButton()) {
+                    const modal = new ModalBuilder()
+                        .setCustomId('nakamoto-email-modal')
+                        .setTitle('Nakamoto');
+
+                    // Create the text input components
+                    const favoriteColorInput = new TextInputBuilder()
+                        .setCustomId('emailNakamoto')
+                        // The label is the prompt the user sees for this input
+                        .setLabel("What's your email in nakamoto.games ?")
+                        // Short means only a single line of text
+                        .setStyle(TextInputStyle.Short);
+
+                    // An action row only holds one text input,
+                    // so you need one action row per text input.
+                    const firstActionRow = new ActionRowBuilder().addComponents(favoriteColorInput);
+
+                    // Add inputs to the modal
+                    modal.addComponents(firstActionRow);
+                    await interaction.showModal(modal)
+                } else if (interaction.isModalSubmit()) {
+                    const email = interaction.fields.getTextInputValue('emailNakamoto');
+
+                    if(!validateEmail(email))return await interaction.reply({ content: `❗️ incoret email format plase try again later`, ephemeral: true });
+                    await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\n You email is \`${email}\` \n [LET PLAY GAME](https://nakamoto.games)`, ephemeral: true });
+                }
+            });
+        })
+        .catch((error) => {
+            console.log("Discord Server it not ready", error.message);
+            process.exit(0);
+        })
+
+})
+
+
+async function wellcomeMessage(_client) {
+    const row = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('link_account_button')
+                .setLabel('Link Account')
+                .setStyle(ButtonStyle.Primary),
+        );
+    _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: 'Welcome and rule', components: [row] });
+    console.log("wellcome and rule");
+}
+
+const validateEmail = (email) => {
+    return String(email)
+        .toLowerCase()
+        .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+};
+
+
+// When the client is ready, run this code (only once)
+client.once('ready', async () => {
+    console.log('Ready!');
+    await wellcomeMessage(client)
+});
+
+
+;
