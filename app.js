@@ -41,6 +41,7 @@ app.listen(port, () => {
 
             // handle interaction listen
             client.on('interactionCreate', async interaction => {
+
                 if (interaction.isChatInputCommand()) {
                     const { commandName } = interaction;
                     const string = interaction.options.getString('input');
@@ -109,6 +110,9 @@ app.listen(port, () => {
                         var result = await submit_link_account_with_email(email, interaction.member.user.id)
 
                         if (result.status == true) {
+                            var role = interaction.guild.roles.cache.find(role => role.name === "member");
+                            var member = interaction.guild.members.cache.get(interaction.member.user.id) || await interaction.guild.members.fetch(user.id).catch(err => { });
+                            member.roles.add(role)
                             await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\n You email is \`${email}\` \n [LET PLAY GAME](https://nakamoto.games)`, ephemeral: true });
                         } else {
                             await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
@@ -166,7 +170,7 @@ function validateEmail(email) {
 // When the client is ready, run this code (only once)-
 client.once('ready', async () => {
     console.log('Ready!');
-    await wellcomeMessage(client)
+    // await wellcomeMessage(client)
 });
 
 
