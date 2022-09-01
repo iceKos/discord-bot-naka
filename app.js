@@ -114,8 +114,17 @@ app.listen(port, () => {
 
                         if (result.status == true) {
                             var role = interaction.guild.roles.cache.find(role => role.name === "member");
-                            var member = interaction.guild.members.cache.get(interaction.member.user.id) || await interaction.guild.members.fetch(user.id).catch(err => { });
-                            member.roles.add(role)
+                            if (role) {
+                                var member = interaction.guild.members.cache.get(interaction.member.user.id) || await interaction.guild.members.fetch(user.id).catch(err => { });
+                                var data = member.roles.add(role)
+                            }
+
+                            var owner = await interaction.guild.fetchOwner()
+
+                            if (owner.user.id != interaction.member.user.id) {
+                                member.setNickname(`${interaction.member.user.username} LV 1`)
+                            }
+
                             await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\n You email is \`${email}\` \n [LET PLAY GAME](https://nakamoto.games)`, ephemeral: true });
                         } else {
                             await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
@@ -125,6 +134,8 @@ app.listen(port, () => {
                     }
 
 
+                }else{
+                    return
                 }
             });
 
@@ -141,8 +152,8 @@ app.listen(port, () => {
                     }
                 }
 
-                console.log("owner message user_id :",reaction.message.author.id,",","user reaction user_id",user.id);
-               
+                console.log("owner message user_id :", reaction.message.author.id, ",", "user reaction user_id", user.id);
+
             });
         })
         .catch((error) => {
