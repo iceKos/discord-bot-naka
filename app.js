@@ -2,14 +2,17 @@ const express = require('express')
 const dotenv = require('dotenv');
 dotenv.config();
 // Require the necessary discord.js classes
-const { Client, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes } = require('discord.js');
+const { Client, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, WELLCOME_CHANNEL_ID, API_NAKAMOTO } = process.env;
 const app = express()
 const port = 3000
 const axios = require("axios")
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+});
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
@@ -123,6 +126,26 @@ app.listen(port, () => {
 
 
                 }
+            });
+
+            client.on('messageReactionAdd', async (reaction, user) => {
+                // When a reaction is received, check if the structure is partial
+                console.log(user);
+                if (reaction.partial) {
+                    // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
+                    try {
+                        await reaction.fetch();
+                    } catch (error) {
+                        console.error('Something went wrong when fetching the message:', error);
+                        // Return as `reaction.message.author` may be undefined/null
+                        return;
+                    }
+                }
+
+                // Now the message has been cached and is fully available
+                console.log(`${reaction.message.author}'s message "${reaction.message.content}" gained a reaction!`);
+                // The reaction is now also fully available and the properties will be reflected accurately:
+                console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
             });
         })
         .catch((error) => {
