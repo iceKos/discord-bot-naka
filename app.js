@@ -130,7 +130,6 @@ app.listen(port, () => {
 
             client.on('messageReactionAdd', async (reaction, user) => {
                 // When a reaction is received, check if the structure is partial
-                console.log(user);
                 if (reaction.partial) {
                     // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
                     try {
@@ -142,10 +141,8 @@ app.listen(port, () => {
                     }
                 }
 
-                // Now the message has been cached and is fully available
-                console.log(`${reaction.message.author}'s message "${reaction.message.content}" gained a reaction!`);
-                // The reaction is now also fully available and the properties will be reflected accurately:
-                console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
+                console.log("owner message user_id :",reaction.message.author.id,",","user reaction user_id",user.id);
+               
             });
         })
         .catch((error) => {
