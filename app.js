@@ -1,5 +1,6 @@
 const express = require('express')
 const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
 dotenv.config();
 // Require the necessary discord.js classes
 const { Client, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials } = require('discord.js');
@@ -14,8 +15,29 @@ const client = new Client({
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
+app.use(bodyParser.json());
+app.use(
+    bodyParser.urlencoded({
+        extended: true,
+    })
+);
+
 app.get('/', (req, res) => {
     res.send('Hello World!')
+})
+
+app.post("/tigger/levelup/:discord_id", async (req, res) => {
+    const { discord_id } = req.params
+    const { level } = req.body;
+
+    // console.log(await client.guilds.cache.first().members.fetch(discord_id));
+    var member = await client.guilds.cache.first().members.fetch(discord_id)
+
+    if (member) {
+        member.setNickname(`${member.user.username} LV ${level}`)
+        member.send(`Congratulations <@${discord_id}> your level is now ${level}`)
+    }
+    res.send("OK")
 })
 
 app.listen(port, () => {
@@ -30,7 +52,8 @@ app.listen(port, () => {
                 new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),
                 new SlashCommandBuilder()
                     .setName('link_account')
-                    .setDescription('Asks you a series of questions!')
+                    .setDescription('Asks you a series of questions!'),
+                new SlashCommandBuilder().setName('levelup').setDescription("Tigger level uer up")
                 //.addStringOption(option => option.setName('input').setDescription('Your email?').setRequired(true))
 
             ]
@@ -113,6 +136,10 @@ app.listen(port, () => {
                         var result = await submit_link_account_with_email(email, interaction.member.user.id)
 
                         if (result.status == true) {
+                            var { level } = result.data
+                            if (level == undefined) {
+                                level = 0
+                            }
                             var role = interaction.guild.roles.cache.find(role => role.name === "member");
                             if (role) {
                                 var member = interaction.guild.members.cache.get(interaction.member.user.id) || await interaction.guild.members.fetch(user.id).catch(err => { });
@@ -122,7 +149,7 @@ app.listen(port, () => {
                             var owner = await interaction.guild.fetchOwner()
 
                             if (owner.user.id != interaction.member.user.id) {
-                                member.setNickname(`${interaction.member.user.username} LV 1`)
+                                member.setNickname(`${interaction.member.user.username} LV ${level}`)
                             }
 
                             await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\n You email is \`${email}\` \n [LET PLAY GAME](https://nakamoto.games)`, ephemeral: true });
@@ -134,7 +161,7 @@ app.listen(port, () => {
                     }
 
 
-                }else{
+                } else {
                     return
                 }
             });
@@ -144,15 +171,21 @@ app.listen(port, () => {
                 if (reaction.partial) {
                     // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
                     try {
-                        await reaction.fetch();
+                        var reaction_item = await reaction.fetch();
+                        console.log(reaction_item);
                     } catch (error) {
                         console.error('Something went wrong when fetching the message:', error);
                         // Return as `reaction.message.author` may be undefined/null
                         return;
                     }
                 }
-
-                console.log("owner message user_id :", reaction.message.author.id, ",", "user reaction user_id", user.id);
+                var response = await reaction_event(reaction.message.author.id)
+                if(response.status == true) {
+                    console.log("increse Exp it done");
+                }else{
+                    console.log(response.message)
+                }
+                //console.log("owner message user_id :", reaction.message.author.id, ",", "user reaction user_id", user.id);
 
             });
         })
@@ -177,6 +210,18 @@ async function submit_link_account_with_email(email, discord_account_id) {
         })
 }
 
+
+async function reaction_event(discord_account_id) {
+    return axios.post(`${API_NAKAMOTO}/api/profile/discord/reaction/${discord_account_id}`, {})
+        .then((response) => {
+            return response.data
+        })
+        .catch((error) => {
+            console.log(error);
+            throw new Error("Cannot connect to API nakamoto.game")
+        })
+}
+
 async function wellcomeMessage(_client) {
     const row = new ActionRowBuilder()
         .addComponents(
@@ -186,7 +231,6 @@ async function wellcomeMessage(_client) {
                 .setStyle(ButtonStyle.Primary),
         );
     _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: 'Welcome and rule', components: [row] });
-    console.log("wellcome and rule");
 }
 
 function validateEmail(email) {
@@ -203,6 +247,3 @@ client.once('ready', async () => {
     console.log('Ready!');
     await wellcomeMessage(client)
 });
-
-
-;
