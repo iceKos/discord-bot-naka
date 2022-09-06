@@ -48,14 +48,7 @@ app.listen(port, () => {
             // register command to bot discord
             const commands = [
                 new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
-                new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
-                new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),
-                new SlashCommandBuilder()
-                    .setName('link_account')
-                    .setDescription('Asks you a series of questions!'),
-                new SlashCommandBuilder().setName('levelup').setDescription("Tigger level uer up")
-                //.addStringOption(option => option.setName('input').setDescription('Your email?').setRequired(true))
-
+                new SlashCommandBuilder().setName('server').setDescription('Replies with server info!')
             ]
                 .map(command => command.toJSON());
 
@@ -172,21 +165,31 @@ app.listen(port, () => {
                     // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
                     try {
                         var reaction_item = await reaction.fetch();
-                        console.log(reaction_item);
+
                     } catch (error) {
                         console.error('Something went wrong when fetching the message:', error);
                         // Return as `reaction.message.author` may be undefined/null
                         return;
                     }
                 }
-                var response = await reaction_event(reaction.message.author.id)
-                if(response.status == true) {
+
+                var response = await reaction_event(reaction.message.author.id, 10)
+                if (response.status == true) {
                     console.log("increse Exp it done");
-                }else{
+                } else {
                     console.log(response.message)
                 }
                 //console.log("owner message user_id :", reaction.message.author.id, ",", "user reaction user_id", user.id);
 
+            });
+
+            client.on('messageReactionRemove', async (reaction, user) => {
+                var response = await reaction_event(reaction.message.author.id, -10)
+                if (response.status == true) {
+                    console.log("decrese Exp it done");
+                } else {
+                    console.log(response.message)
+                }
             });
         })
         .catch((error) => {
@@ -211,8 +214,8 @@ async function submit_link_account_with_email(email, discord_account_id) {
 }
 
 
-async function reaction_event(discord_account_id) {
-    return axios.post(`${API_NAKAMOTO}/api/profile/discord/reaction/${discord_account_id}`, {})
+async function reaction_event(discord_account_id, exp) {
+    return axios.post(`${API_NAKAMOTO}/api/profile/discord/reaction/${discord_account_id}`, { exp })
         .then((response) => {
             return response.data
         })
@@ -245,5 +248,5 @@ function validateEmail(email) {
 // When the client is ready, run this code (only once)-
 client.once('ready', async () => {
     console.log('Ready!');
-    await wellcomeMessage(client)
+    // await wellcomeMessage(client)
 });
