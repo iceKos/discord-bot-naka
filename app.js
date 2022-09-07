@@ -231,9 +231,13 @@ async function wellcomeMessage(_client) {
             new ButtonBuilder()
                 .setCustomId('link_account_button')
                 .setLabel('Link Account')
-                .setStyle(ButtonStyle.Primary),
-        );
-    _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: 'Welcome and rule', components: [row] });
+                .setStyle(ButtonStyle.Success),
+        )
+
+
+
+    _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `link your Discord's account (Email) with our platform`, components: [row] });
+    _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `After linked your Discord's account (Email) with our platform,  you need to check our documentation: https://docs.nakamoto.games/ to getting to know more about us. 🙂` });
 }
 
 function validateEmail(email) {
@@ -248,5 +252,5 @@ function validateEmail(email) {
 // When the client is ready, run this code (only once)-
 client.once('ready', async () => {
     console.log('Ready!');
-    // await wellcomeMessage(client)
+    await wellcomeMessage(client)
 });
