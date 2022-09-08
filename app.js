@@ -145,7 +145,7 @@ app.listen(port, () => {
                                 member.setNickname(`${interaction.member.user.username} LV ${level}`)
                             }
 
-                            await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\n You email is \`${email}\` \n [LET PLAY GAME](https://nakamoto.games)`, ephemeral: true });
+                            await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\n You email is \`${email}\` \nGo to platform to get you reward. \n[LET PLAY GAME](https://nakamoto.games)`, ephemeral: true });
                         } else {
                             await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
                         }
