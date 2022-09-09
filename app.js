@@ -23,7 +23,10 @@ app.use(
 );
 
 app.get('/', (req, res) => {
-    res.send('Hello World!')
+    res.json({
+        status:200,
+        message:"Service it working"
+    })
 })
 
 app.post("/tigger/levelup/:discord_id", async (req, res) => {
