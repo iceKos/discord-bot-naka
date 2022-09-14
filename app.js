@@ -255,5 +255,5 @@ function validateEmail(email) {
 // When the client is ready, run this code (only once)-
 client.once('ready', async () => {
     console.log('Ready!');
-    await wellcomeMessage(client)
+    //await wellcomeMessage(client)
 });
