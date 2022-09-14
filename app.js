@@ -38,6 +38,7 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
 
     if (member) {
         member.setNickname(`${member.user.username} LV ${level}`)
+
         member.send(`Congratulations <@${discord_id}> your level is now ${level}`)
     }
     res.send("OK")
@@ -147,7 +148,7 @@ app.listen(port, () => {
                                     }
                                 }
                             }
-                            await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\n You email is \`${email}\` \nGo to platform to get you reward. \n[LET PLAY GAME](https://nakamoto.games)`, ephemeral: true });
+                            await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\nYou email is \`${email}\` \nGo to our platform to claim your reward and [let's play games](https://nakamoto.games)`, ephemeral: true });
                         } else {
                             await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
                         }
