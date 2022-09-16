@@ -30,18 +30,35 @@ app.get('/', (req, res) => {
 })
 
 app.post("/tigger/levelup/:discord_id", async (req, res) => {
-    const { discord_id } = req.params
-    const { level } = req.body;
+    try {
+        const { discord_id } = req.params
+        const { level } = req.body;
+        var guild = client.guilds.cache.get(GUILD_ID)   
+        var member = await guild.members.fetch(discord_id)
 
-    // console.log(await client.guilds.cache.first().members.fetch(discord_id));
-    var member = await client.guilds.cache.first().members.fetch(discord_id)
+        if (member) {
+            member.setNickname(`${member.user.username} LV ${level}`)
+            member.send(`Congratulations <@${discord_id}> your level is now ${level}`)
+            res.json({
+                status: true,
+                data: "level up success"
+            })
+        } else {
+            res.json({
+                status: true,
+                data: "member not found"
+            })
+        }
 
-    if (member) {
-        member.setNickname(`${member.user.username} LV ${level}`)
-
-        member.send(`Congratulations <@${discord_id}> your level is now ${level}`)
+    } catch (error) {
+        console.log(error);
+        res.status(404).json({
+            status: true,
+            data: error.message
+        })
     }
-    res.send("OK")
+
+
 })
 
 app.listen(port, () => {
