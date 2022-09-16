@@ -5,7 +5,7 @@ dotenv.config();
 // Require the necessary discord.js classes
 const { Client, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials } = require('discord.js');
 const { REST } = require('@discordjs/rest');
-const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, WELLCOME_CHANNEL_ID, API_NAKAMOTO } = process.env;
+const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO,SERVER_MESSAGE_CHANNEL_ID } = process.env;
 const app = express()
 const port = 3000
 const axios = require("axios")
@@ -39,6 +39,7 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
         if (member) {
             member.setNickname(`${member.user.username} LV ${level}`)
             member.send(`Congratulations <@${discord_id}> your level is now ${level}`)
+            client.channels.cache.get(SERVER_MESSAGE_CHANNEL_ID).send({ content: `Congratulations <@${discord_id}> your level is now ${level}` });
             res.json({
                 status: true,
                 data: "level up success"
