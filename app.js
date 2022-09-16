@@ -5,7 +5,7 @@ dotenv.config();
 // Require the necessary discord.js classes
 const { Client, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials } = require('discord.js');
 const { REST } = require('@discordjs/rest');
-const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO,SERVER_MESSAGE_CHANNEL_ID } = process.env;
+const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAGE_CHANNEL_ID } = process.env;
 const app = express()
 const port = 3000
 const axios = require("axios")
@@ -33,13 +33,13 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
     try {
         const { discord_id } = req.params
         const { level } = req.body;
-        var guild = client.guilds.cache.get(GUILD_ID)   
+        var guild = client.guilds.cache.get(GUILD_ID)
         var member = await guild.members.fetch(discord_id)
 
         if (member) {
-            member.setNickname(`${member.user.username} LV ${level}`)
-            member.send(`Congratulations <@${discord_id}> your level is now ${level}`)
-            client.channels.cache.get(SERVER_MESSAGE_CHANNEL_ID).send({ content: `Congratulations <@${discord_id}> your level is now ${level}` });
+            await member.setNickname(`${member.user.username} LV ${level}`)
+            await member.send(`Congratulations <@${discord_id}> your level is now ${level}`)
+            await client.channels.cache.get(SERVER_MESSAGE_CHANNEL_ID).send({ content: `Congratulations <@${discord_id}> your level is now ${level}` });
             res.json({
                 status: true,
                 data: "level up success"
@@ -61,6 +61,8 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
 
 
 })
+
+
 
 app.listen(port, () => {
     // Login to Discord with your client's DISCORD_TOKEN
@@ -162,7 +164,7 @@ app.listen(port, () => {
                                 var owner = await interaction.guild.fetchOwner()
                                 if (owner.user.id != interaction.member.user.id) {
                                     if (member) {
-                                        member.setNickname(`${interaction.member.user.username} LV ${level}`)
+                                        await member.setNickname(`${interaction.member.user.username} LV ${level}`)
                                     }
                                 }
                             }
@@ -171,6 +173,7 @@ app.listen(port, () => {
                             await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
                         }
                     } catch (error) {
+                        console.log(error);
                         await interaction.reply({ content: error.message, ephemeral: true })
                     }
 
@@ -257,8 +260,8 @@ async function wellcomeMessage(_client) {
 
 
 
-    _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `link your Discord's account (Email) with our platform`, components: [row] });
-    _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `After linked your Discord's account (Email) with our platform,  you need to check our documentation: https://docs.nakamoto.games/ to getting to know more about us. 🙂` });
+    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `link your Discord's account (Email) with our platform`, components: [row] });
+    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `After linked your Discord's account (Email) with our platform,  you need to check our documentation: https://docs.nakamoto.games/ to getting to know more about us. 🙂` });
 }
 
 function validateEmail(email) {
