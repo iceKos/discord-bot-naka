@@ -148,7 +148,7 @@ app.listen(port, () => {
                                     }
                                 }
                             }
-                            await interaction.reply({ content: `✅ Thank you to join us! <@${interaction.member.user.id}>.\nYou email is \`${email}\` \nGo to our platform to claim your reward and [let's play games](https://nakamoto.games)`, ephemeral: true });
+                            await interaction.reply({ content: `✅ Thank you to join us <@${interaction.member.user.id}>!\nYour email is \`${email}\` \nGo to our platform to claim your rewards! [let's play games](https://nakamoto.games)`, ephemeral: true });
                         } else {
                             await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
                         }
