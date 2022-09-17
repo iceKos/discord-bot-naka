@@ -303,15 +303,14 @@ async function coinTracking() {
                 cryptoCategory = category
             }
 
-            await guild.channels.cache.filter(x => x.parentId == cryptoCategory.id).forEach(async (channelItem) => {
-                await channelItem.delete()
-            })
+            // await guild.channels.cache.filter(x => x.parentId == cryptoCategory.id).forEach(async (channelItem) => {
+            //     await channelItem.delete()
+            // })
+
             for (const coinName of Object.keys(dataCoinMarketCap)) {
-                var channelCoin = await guild.channels.create({
-                    type: TYPE_CHANNEL.TEXT,
-                    name: `${coinName}-USDT`,
-                    parent: cryptoCategory.id
-                })
+                var findChannelCoin = await guild.channels.cache.find(x => x.name == String(`${coinName}-USDT`).toLocaleLowerCase())
+                var channelCoin = null
+
                 var sideColor = (dataCoinMarketCap[coinName].quote.USD.percent_change_24h > 0) ? 0x6BFA12 : 0xFA122C
                 // inside a command, event listener, etc.
                 const exampleEmbed = new EmbedBuilder()
@@ -333,7 +332,31 @@ async function coinTracking() {
                     .setTimestamp()
                     .setFooter({ text: 'nakamoto.games', iconURL: 'https://files.naka.im/seo/favicon.png' });
 
-                await channelCoin.send({ embeds: [exampleEmbed] });
+
+                if (findChannelCoin) {
+                    console.log("found channel");
+                    channelCoin = findChannelCoin
+                    // const findMessageCoin = 
+                    var messages = await channelCoin.messages.fetch({ limit: 10 })
+                    messages.forEach(async message => {
+                        if (message.embeds.length > 0) {
+                            await message.edit({ embeds: [exampleEmbed] })
+                        }else{
+                            console.log("ignore mossage");
+                        }
+                    })
+                } else {
+                    channelCoin = await guild.channels.create({
+                        type: TYPE_CHANNEL.TEXT,
+                        name: `${coinName}-USDT`,
+                        parent: cryptoCategory.id
+                    })
+                    await channelCoin.send({ embeds: [exampleEmbed] });
+                }
+
+
+
+
             }
 
             console.log("Coin Tracker process it done", new Date());
@@ -383,7 +406,8 @@ async function getCoinMarketCap(coinArray = []) {
 client.once('ready', async () => {
     console.log('Ready!');
     //await wellcomeMessage(client)
-    cron.schedule('*/10 * * * *', function () {
-        coinTracking().catch(console.dir);
-    });
+    await coinTracking()
+    // cron.schedule('*/10 * * * *', function () {
+    //     coinTracking().catch(console.dir);
+    // });
 });
