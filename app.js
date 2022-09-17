@@ -12,6 +12,7 @@ const app = express()
 const port = 3000
 const axios = require("axios")
 var coin = JSON.parse(fs.readFileSync("./coin.json", "utf8"))
+const PASSWORD_COMMAND = "naka_token"
 // Create a new client instance
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
@@ -87,17 +88,29 @@ app.listen(port, () => {
                     .addStringOption(option =>
                         option.setName('coin')
                             .setDescription('type your coin to tracking')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('password')
+                            .setDescription('type your password')
                             .setRequired(true)),
                 new SlashCommandBuilder().setName('remove_coin').setDescription('Remove  coin from list tracking')
                     .addStringOption(option =>
                         option.setName('coin')
                             .setDescription('type your coin to remove tracking')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('password')
+                            .setDescription('type your password')
                             .setRequired(true)),
                 new SlashCommandBuilder().setName('list_coin').setDescription('Show coin registered.'),
                 new SlashCommandBuilder().setName('show_id_user').setDescription('Show id of user')
                     .addStringOption(option =>
                         option.setName('user_mention')
                             .setDescription('type user discord tag')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('password')
+                            .setDescription('type your password')
                             .setRequired(true))
             ]
                 .map(command => command.toJSON());
@@ -143,6 +156,16 @@ app.listen(port, () => {
                         await interaction.showModal(modal)
                     } else if (commandName == "add_coin") {
                         var coin_input = interaction.options.getString('coin')
+                        var password = interaction.options.getString('password')
+                        if (password) {
+                            if (password != PASSWORD_COMMAND) {
+                                await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
+                                return
+                            }
+                        } else {
+                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                            return
+                        }
                         if (coin_input) {
                             add_coin(coin_input)
                             await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
@@ -152,6 +175,16 @@ app.listen(port, () => {
 
                     } else if (commandName == "remove_coin") {
                         var coin_input = interaction.options.getString('coin')
+                        var password = interaction.options.getString('password')
+                        if (password) {
+                            if (password != PASSWORD_COMMAND) {
+                                await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
+                                return
+                            }
+                        } else {
+                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                            return
+                        }
                         if (coin_input) {
                             await remove_coin(coin_input)
                             await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
@@ -159,11 +192,24 @@ app.listen(port, () => {
                             await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
                         }
 
+                        return
                     } else if (commandName == "list_coin") {
                         await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
+                        return
                     } else if (commandName == "show_id_user") {
                         var mentions = interaction.options.getString('user_mention')
+                        var password = interaction.options.getString('password')
+                        if (password) {
+                            if (password != PASSWORD_COMMAND) {
+                                await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
+                                return
+                            }
+                        } else {
+                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                            return
+                        }
                         await interaction.reply({ content: mentions.replace(/[\\<>@#&!]/g, ""), ephemeral: true })
+                        return
                     }
                 } else if (interaction.isButton()) {
 
@@ -193,6 +239,7 @@ app.listen(port, () => {
                         default:
                             break;
                     }
+                    return
                 } else if (interaction.isModalSubmit()) {
                     const email = interaction.fields.getTextInputValue('emailNakamoto');
 
@@ -226,6 +273,7 @@ app.listen(port, () => {
                         await interaction.reply({ content: error.message, ephemeral: true })
                     }
 
+                    return
 
                 } else {
                     return
