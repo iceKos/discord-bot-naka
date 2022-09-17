@@ -406,8 +406,8 @@ async function getCoinMarketCap(coinArray = []) {
 client.once('ready', async () => {
     console.log('Ready!');
     //await wellcomeMessage(client)
-    await coinTracking()
-    // cron.schedule('*/10 * * * *', function () {
-    //     coinTracking().catch(console.dir);
-    // });
+    // await coinTracking()
+    cron.schedule('*/7 * * * *', function () {
+        coinTracking().catch(console.dir);
+    });
 });
