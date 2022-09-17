@@ -1,19 +1,28 @@
 const express = require('express')
+const fs = require('fs')
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
+const cron = require('node-cron');
 dotenv.config();
 // Require the necessary discord.js classes
-const { Client, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials } = require('discord.js');
+const { Client, EmbedBuilder, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials, CategoryChannel } = require('discord.js');
 const { REST } = require('@discordjs/rest');
-const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAGE_CHANNEL_ID } = process.env;
+const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAGE_CHANNEL_ID, COINMARKETCAP_API_KEY } = process.env;
 const app = express()
 const port = 3000
 const axios = require("axios")
+const coin = JSON.parse(fs.readFileSync("./coin.json", "utf8"))
 // Create a new client instance
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
+
+var TYPE_CHANNEL = {
+    TEXT: 0,
+    VOICE: 2,
+    CATEGORIES: 4
+}
 
 app.use(bodyParser.json());
 app.use(
@@ -40,6 +49,7 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
             await member.setNickname(`${member.user.username} LV ${level}`)
             await member.send(`Congratulations <@${discord_id}> your level is now ${level}`)
             await client.channels.cache.get(SERVER_MESSAGE_CHANNEL_ID).send({ content: `Congratulations <@${discord_id}> your level is now ${level}` });
+
             res.json({
                 status: true,
                 data: "level up success"
@@ -272,9 +282,108 @@ function validateEmail(email) {
         );
 };
 
+async function coinTracking() {
+    try {
+        var dataCoinMarketCap = await getCoinMarketCap(coin)
+
+        if (Object.keys(dataCoinMarketCap).length > 0) {
+            const guild = client.guilds.cache.get(GUILD_ID)
+
+            // find category channel
+            var findCategory = await guild.channels.cache.find((x) => x.name == "Cryptocurrency")
+
+            var cryptoCategory = null
+            if (findCategory) { // category exists
+                cryptoCategory = findCategory
+            } else {
+                var category = await guild.channels.create({
+                    type: TYPE_CHANNEL.CATEGORIES,
+                    name: "Cryptocurrency",
+                })
+                cryptoCategory = category
+            }
+
+            await guild.channels.cache.filter(x => x.parentId == cryptoCategory.id).forEach(async (channelItem) => {
+                await channelItem.delete()
+            })
+            for (const coinName of Object.keys(dataCoinMarketCap)) {
+                var channelCoin = await guild.channels.create({
+                    type: TYPE_CHANNEL.TEXT,
+                    name: `${coinName}-USDT`,
+                    parent: cryptoCategory.id
+                })
+                var sideColor = (dataCoinMarketCap[coinName].quote.USD.percent_change_24h > 0) ? 0x6BFA12 : 0xFA122C
+                // inside a command, event listener, etc.
+                const exampleEmbed = new EmbedBuilder()
+                    .setColor(sideColor)
+                    .setTitle(dataCoinMarketCap[coinName].name)
+                    // .setURL('https://discord.js.org/')
+                    .setAuthor({ name: 'Nakamoto.games', iconURL: 'https://files.naka.im/seo/favicon.png', url: 'https://www.nakamoto.games/' })
+                    .setThumbnail(`https://s2.coinmarketcap.com/static/img/coins/64x64/${dataCoinMarketCap[coinName].id}.png`)
+                    .addFields(
+                        { name: 'Current Price', value: String(dataCoinMarketCap[coinName].quote.USD.price), inline: true },
+                        { name: '24hr Volumn', value: String(dataCoinMarketCap[coinName].quote.USD.volume_24h), inline: true },
+                        { name: 'Volumn Change', value: String(dataCoinMarketCap[coinName].quote.USD.volume_change_24h), inline: true },
+                    )
+                    .addFields(
+                        { name: '% Change 24h', value: String(dataCoinMarketCap[coinName].quote.USD.percent_change_24h), inline: true },
+                        { name: '% Change 7d', value: String(dataCoinMarketCap[coinName].quote.USD.percent_change_7d), inline: true },
+                        { name: '% Change 30d', value: String(dataCoinMarketCap[coinName].quote.USD.percent_change_30d), inline: true }
+                    )
+                    .setTimestamp()
+                    .setFooter({ text: 'nakamoto.games', iconURL: 'https://files.naka.im/seo/favicon.png' });
+
+                await channelCoin.send({ embeds: [exampleEmbed] });
+            }
+
+            console.log("Coin Tracker process it done", new Date());
+        } else {
+            console.log("empty coin");
+        }
+
+
+
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
+async function getCoinMarketCap(coinArray = []) {
+    try {
+        var response = await axios.get("https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest", {
+            headers: {
+                ["X-CMC_PRO_API_KEY"]: COINMARKETCAP_API_KEY
+            },
+            params: {
+                symbol: coinArray.join(",")
+            }
+        })
+
+        var data_return = {
+
+        }
+
+        Object.keys(response.data.data).forEach((key) => {
+            // console.log(response.data.data);
+
+            if (response.data.data[key].length > 0) {
+                data_return[key] = response.data.data[key][0]
+            }
+        })
+
+        return data_return
+
+    } catch (error) {
+        throw new Error(error)
+    }
+}
 
 // When the client is ready, run this code (only once)-
 client.once('ready', async () => {
     console.log('Ready!');
     //await wellcomeMessage(client)
+    cron.schedule('*/5 * * * *', function () {
+        coinTracking().catch(console.dir);
+    });
 });
