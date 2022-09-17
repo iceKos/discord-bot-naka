@@ -317,7 +317,7 @@ async function coinTracking() {
                 const exampleEmbed = new EmbedBuilder()
                     .setColor(sideColor)
                     .setTitle(dataCoinMarketCap[coinName].name)
-                    // .setURL('https://discord.js.org/')
+                    .setURL(`https://coinmarketcap.com/currencies/${dataCoinMarketCap[coinName].slug}/`)
                     .setAuthor({ name: 'Nakamoto.games', iconURL: 'https://files.naka.im/seo/favicon.png', url: 'https://www.nakamoto.games/' })
                     .setThumbnail(`https://s2.coinmarketcap.com/static/img/coins/64x64/${dataCoinMarketCap[coinName].id}.png`)
                     .addFields(
