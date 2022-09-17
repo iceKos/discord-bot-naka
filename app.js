@@ -11,7 +11,7 @@ const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAG
 const app = express()
 const port = 3000
 const axios = require("axios")
-const coin = JSON.parse(fs.readFileSync("./coin.json", "utf8"))
+var coin = JSON.parse(fs.readFileSync("./coin.json", "utf8"))
 // Create a new client instance
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
@@ -82,7 +82,23 @@ app.listen(port, () => {
             // register command to bot discord
             const commands = [
                 new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
-                new SlashCommandBuilder().setName('server').setDescription('Replies with server info!')
+                new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
+                new SlashCommandBuilder().setName('add_coin').setDescription('Add new coin to list tracking')
+                    .addStringOption(option =>
+                        option.setName('coin')
+                            .setDescription('type your coin to tracking')
+                            .setRequired(true)),
+                new SlashCommandBuilder().setName('remove_coin').setDescription('Remove  coin from list tracking')
+                    .addStringOption(option =>
+                        option.setName('coin')
+                            .setDescription('type your coin to remove tracking')
+                            .setRequired(true)),
+                new SlashCommandBuilder().setName('list_coin').setDescription('Show coin registered.'),
+                new SlashCommandBuilder().setName('show_id_user').setDescription('Show id of user')
+                    .addStringOption(option =>
+                        option.setName('user_mention')
+                            .setDescription('type user discord tag')
+                            .setRequired(true))
             ]
                 .map(command => command.toJSON());
 
@@ -125,6 +141,29 @@ app.listen(port, () => {
                         // Add inputs to the modal
                         modal.addComponents(firstActionRow);
                         await interaction.showModal(modal)
+                    } else if (commandName == "add_coin") {
+                        var coin_input = interaction.options.getString('coin')
+                        if (coin_input) {
+                            add_coin(coin_input)
+                            await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
+                        } else {
+                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                        }
+
+                    } else if (commandName == "remove_coin") {
+                        var coin_input = interaction.options.getString('coin')
+                        if (coin_input) {
+                            await remove_coin(coin_input)
+                            await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
+                        } else {
+                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                        }
+
+                    } else if (commandName == "list_coin") {
+                        await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
+                    } else if (commandName == "show_id_user") {
+                        var mentions = interaction.options.getString('user_mention')
+                        await interaction.reply({ content: mentions.replace(/[\\<>@#&!]/g, ""), ephemeral: true })
                     }
                 } else if (interaction.isButton()) {
 
@@ -282,6 +321,25 @@ function validateEmail(email) {
         );
 };
 
+function add_coin(new_coin) {
+    coin.push(String(new_coin).toUpperCase())
+    fs.writeFileSync("./coin.json", JSON.stringify(coin, null, 4))
+}
+
+async function remove_coin(coin_remove) {
+    coin = coin.filter((symbol) => {
+        return !(String(symbol).toLowerCase() == String(coin_remove).toLowerCase())
+    })
+    // remov channels
+    const guild = client.guilds.cache.get(GUILD_ID)
+    await guild.channels.cache.filter(x => {
+        return String(`${coin_remove}-USDT`).toLowerCase() == x.name
+    }).forEach(async (channelItem) => {
+        await channelItem.delete()
+    })
+    fs.writeFileSync("./coin.json", JSON.stringify(coin, null, 4))
+}
+
 async function coinTracking() {
     try {
         var dataCoinMarketCap = await getCoinMarketCap(coin)
@@ -302,10 +360,6 @@ async function coinTracking() {
                 })
                 cryptoCategory = category
             }
-
-            // await guild.channels.cache.filter(x => x.parentId == cryptoCategory.id).forEach(async (channelItem) => {
-            //     await channelItem.delete()
-            // })
 
             for (const coinName of Object.keys(dataCoinMarketCap)) {
                 var findChannelCoin = await guild.channels.cache.find(x => x.name == String(`${coinName}-USDT`).toLocaleLowerCase())
@@ -334,14 +388,12 @@ async function coinTracking() {
 
 
                 if (findChannelCoin) {
-                    console.log("found channel");
                     channelCoin = findChannelCoin
-                    // const findMessageCoin = 
                     var messages = await channelCoin.messages.fetch({ limit: 10 })
                     messages.forEach(async message => {
                         if (message.embeds.length > 0) {
                             await message.edit({ embeds: [exampleEmbed] })
-                        }else{
+                        } else {
                             console.log("ignore mossage");
                         }
                     })
