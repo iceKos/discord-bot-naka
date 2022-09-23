@@ -36,7 +36,8 @@ app.use(
 app.get('/', (req, res) => {
     res.json({
         status: 200,
-        message: "Service it working"
+        message: "Service it working",
+        version:"1.1.2"
     })
 })
 
