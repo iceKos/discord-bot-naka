@@ -130,7 +130,7 @@ app.post("/tigger/inviteation", async (req, res) => {
                 .setThumbnail(gameRecord.game_image)
 
             for (const item_list of gameRecord.item_list) {
-                var link_join_game = `[${item_list.room_list.length} ROOM](${gameRecord.room_list_url})`
+                var link_join_game = `[${item_list.room_list.length} ROOM](${item_list.room_list_url})`
                 embed.addFields({ name: `${item_list.item_name} ${item_list.item_size}`, value: link_join_game, inline: true })
             }
             embed.setTimestamp()
