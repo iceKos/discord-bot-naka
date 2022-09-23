@@ -3,9 +3,10 @@ const fs = require('fs')
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const cron = require('node-cron');
+const _ = require('underscore')
 dotenv.config();
 // Require the necessary discord.js classes
-const { Client, EmbedBuilder, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials, CategoryChannel } = require('discord.js');
+const { Client, hyperlink, EmbedBuilder, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials, CategoryChannel } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAGE_CHANNEL_ID, COINMARKETCAP_API_KEY } = process.env;
 const app = express()
@@ -73,6 +74,131 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
 
 })
 
+
+app.post("/tigger/inviteation", async (req, res) => {
+    const { data, game_type } = req.body
+
+    const guild = client.guilds.cache.get(GUILD_ID)
+    var game_channels_map = {
+        "singleplayer": "🕹-p2e-singleplayer",
+        "multiplayer": "🕹-p2e-multiplayers",
+        "free2play": "🕹-free2play2earn",
+        "survivor": "🕹-p2e-survivor"
+    }
+    var channel_name = game_channels_map[game_type]
+    if (channel_name == undefined) {
+        res.status(404).send("game type not found")
+        return
+    }
+    const channel = await guild.channels.cache.find((channelItem) => channelItem.name == channel_name)
+    if (channel) {
+        var messages = await channel.messages.fetch({ limit: 100 })
+        var current_game_list = []
+        var new_game_list = []
+        messages.forEach(mes => {
+            if (mes.embeds.length > 0) {
+                current_game_list.push(mes.embeds[0].data.title)
+            }
+        });
+
+
+
+        new_game_list = data.map(game => game.game_name)
+        let game_name_has_remove = _.difference(current_game_list, new_game_list)
+
+        // remove message game
+        await messages.forEach(async msg_obj => {
+            if (msg_obj.embeds.length > 0) {
+                if (game_name_has_remove.includes(String(msg_obj.embeds[0].data.title))) {
+                    if (msg_obj.thread) {
+                        await msg_obj.thread.delete()
+                    }
+                    await msg_obj.delete()
+                }
+            }
+        })
+
+
+        for (const gameRecord of data) {
+
+            // console.log(messages.size);
+            const embed = new EmbedBuilder()
+                .setColor(0x0099FF)
+                .setTitle(gameRecord.game_name)
+                .setURL(gameRecord.game_url)
+                .setAuthor({ name: 'Nakamoto.games', iconURL: 'https://files.naka.im/seo/favicon.png', url: 'https://www.nakamoto.games/' })
+                .setThumbnail(gameRecord.game_image)
+
+            for (const item_list of gameRecord.item_list) {
+                var link_join_game = `[${item_list.room_list.length} ROOM](${gameRecord.room_list_url})`
+                embed.addFields({ name: `${item_list.item_name} ${item_list.item_size}`, value: link_join_game, inline: true })
+            }
+            embed.setTimestamp()
+
+            var findMessageEmbed = messages.find(mes => {
+                if (mes.embeds.length > 0) {
+                    return String(mes.embeds[0].data.title) == String(gameRecord.game_name)
+                } else {
+                    return false
+                }
+            })
+
+
+
+            if (findMessageEmbed) {
+                await findMessageEmbed.edit({ embeds: [embed] })
+                if (findMessageEmbed.thread) {
+                    await findMessageEmbed.thread.delete()
+                }
+            } else {
+                console.log("ignore message");
+                findMessageEmbed = await channel.send({ embeds: [embed] })
+            }
+
+            // var thread = await findMessageEmbed.startThread({
+            //     name: `Room List : ${findMessageEmbed.embeds[0].title} `,
+            // });
+
+            // for (const item_list of gameRecord.item_list) {
+            //     for (const room of item_list.room_list) {
+
+            //         const row = new ActionRowBuilder()
+            //             .addComponents(
+            //                 new ButtonBuilder()
+
+            //                     .setLabel(`${item_list.item_name} ${item_list.item_size} : Room ${room.room_number}`)
+            //                     .setStyle(ButtonStyle.Link)
+            //                     .setURL(room.item_image)
+            //             );
+            //         await thread.send({ components: [row] })
+            //     }
+            // }
+
+
+            // console.log(`Created thread: ${thread.name}`);
+        }
+    } else {
+
+    }
+
+
+
+
+    // console.log("channel", channel);
+    // const thread = await channel.threads.create({
+    //     name: 'food-talk',
+    //     autoArchiveDuration: 60,
+    //     reason: 'Needed a separate thread for food',
+    // });
+
+    // console.log(`Created thread: ${thread.name}`);
+    res.send("OK")
+
+})
+
+async function remove_message_embed_by_names() {
+
+}
 
 
 app.listen(port, () => {
@@ -453,10 +579,6 @@ async function coinTracking() {
                     })
                     await channelCoin.send({ embeds: [exampleEmbed] });
                 }
-
-
-
-
             }
 
             console.log("Coin Tracker process it done", new Date());
