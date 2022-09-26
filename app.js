@@ -122,7 +122,7 @@ app.post("/tigger/inviteation", async (req, res) => {
 
         for (const gameRecord of data) {
 
-            // console.log(messages.size);
+            
             const embed = new EmbedBuilder()
                 .setColor(0x0099FF)
                 .setTitle(gameRecord.game_name)
@@ -143,8 +143,6 @@ app.post("/tigger/inviteation", async (req, res) => {
                     return false
                 }
             })
-
-
 
             if (findMessageEmbed) {
                 await findMessageEmbed.edit({ embeds: [embed] })
@@ -178,28 +176,12 @@ app.post("/tigger/inviteation", async (req, res) => {
 
             // console.log(`Created thread: ${thread.name}`);
         }
-    } else {
-
     }
 
 
-
-
-    // console.log("channel", channel);
-    // const thread = await channel.threads.create({
-    //     name: 'food-talk',
-    //     autoArchiveDuration: 60,
-    //     reason: 'Needed a separate thread for food',
-    // });
-
-    // console.log(`Created thread: ${thread.name}`);
     res.send("OK")
 
 })
-
-async function remove_message_embed_by_names() {
-
-}
 
 
 app.listen(port, () => {
