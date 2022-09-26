@@ -370,14 +370,16 @@ app.listen(port, () => {
                             var guild = client.guilds.cache.get(GUILD_ID)
                             
                              var role = await guild.roles.cache.find(role => role.name === "member");
-                          
+                            
                             if (role) {
-                                var member = guild.members.cache.get(member.id) || await guild.members.fetch(member.id).catch(err => { });
+                                var member = await guild.members.cache.get(member.id) || await guild.members.fetch(member.id).catch(err => { });
+
+                                console.log(member);
                                 var data = member.roles.add(role)
                                 var owner = await guild.fetchOwner()
                                 if (owner.user.id != member.id) {
                                     if (member) {
-                                        await member.setNickname(`${member.username} LV ${level}`)
+                                        await member.setNickname(`${member.user.username} LV ${level}`)
                                     }
                                 }
                             }
