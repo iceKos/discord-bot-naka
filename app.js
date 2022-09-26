@@ -16,7 +16,7 @@ var coin = JSON.parse(fs.readFileSync("./coin.json", "utf8"))
 const PASSWORD_COMMAND = "naka_token"
 // Create a new client instance
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
     res.json({
         status: 200,
         message: "Service it working",
-        version:"1.1.2"
+        version: "1.1.2"
     })
 })
 
@@ -372,26 +372,34 @@ app.listen(port, () => {
 
                     if (!validateEmail(email)) return await interaction.reply({ content: `❗️ incoret email format plase try again later`, ephemeral: true });
 
+                    var member = (interaction.member == null) ? interaction.user : interaction.member.user
+                   
+                    
                     try {
-                        var result = await submit_link_account_with_email(email, interaction.member.user.id)
+                        
+                        var result = await submit_link_account_with_email(email, member.id)
 
                         if (result.status == true) {
                             var { level } = result.data
                             if (level == undefined) {
                                 level = 0
                             }
-                            var role = interaction.guild.roles.cache.find(role => role.name === "member");
+
+                            var guild = client.guilds.cache.get(GUILD_ID)
+                            
+                             var role = await guild.roles.cache.find(role => role.name === "member");
+                          
                             if (role) {
-                                var member = interaction.guild.members.cache.get(interaction.member.user.id) || await interaction.guild.members.fetch(user.id).catch(err => { });
+                                var member = guild.members.cache.get(member.id) || await guild.members.fetch(member.id).catch(err => { });
                                 var data = member.roles.add(role)
-                                var owner = await interaction.guild.fetchOwner()
-                                if (owner.user.id != interaction.member.user.id) {
+                                var owner = await guild.fetchOwner()
+                                if (owner.user.id != member.id) {
                                     if (member) {
-                                        await member.setNickname(`${interaction.member.user.username} LV ${level}`)
+                                        await member.setNickname(`${member.username} LV ${level}`)
                                     }
                                 }
                             }
-                            await interaction.reply({ content: `✅ Thank you to join us <@${interaction.member.user.id}>!\nYour email is \`${email}\` \nGo to our platform to claim your rewards! [let's play games](https://nakamoto.games)`, ephemeral: true });
+                            await interaction.reply({ content: `✅ Thank you to join us <@${member.id}>!\nYour email is \`${email}\` \nGo to our platform to claim your rewards! [let's play games](https://nakamoto.games)`, ephemeral: true });
                         } else {
                             await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
                         }
@@ -438,6 +446,12 @@ app.listen(port, () => {
                 } else {
                     console.log(response.message)
                 }
+            });
+
+            client.on('guildMemberAdd', async (member) => {
+                console.log("new player comening member",member.id);
+                await wellcomeMessageDM(member)
+                //await member.guild.channels.get(SERVER_MESSAGE_CHANNEL_ID).send("Welcome");
             });
         })
         .catch((error) => {
@@ -486,6 +500,21 @@ async function wellcomeMessage(_client) {
 
     await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `link your Discord's account (Email) with our platform`, components: [row] });
     await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `After linked your Discord's account (Email) with our platform,  you need to check our documentation: https://docs.nakamoto.games/ to getting to know more about us. 🙂` });
+}
+
+async function wellcomeMessageDM(member) {
+    const row = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('link_account_button')
+                .setLabel('Link Account')
+                .setStyle(ButtonStyle.Success),
+        )
+
+
+
+    await member.send({ content: `link your Discord's account (Email) with our platform`, components: [row] });
+    await member.send({ content: `After linked your Discord's account (Email) with our platform,  you need to check our documentation: https://docs.nakamoto.games/ to getting to know more about us. 🙂` });
 }
 
 function validateEmail(email) {
