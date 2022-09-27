@@ -33,6 +33,13 @@ app.use(
     })
 );
 
+var storeData = {
+    "singleplayer": [],
+    "multiplayer": [],
+    "free2play": [],
+    "survivor": []
+}
+
 app.get('/', (req, res) => {
     res.json({
         status: 200,
@@ -79,6 +86,15 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
 app.post("/tigger/inviteation", async (req, res) => {
     const { data, game_type } = req.body
 
+    // check duplicate data 
+    if (JSON.stringify(data) == JSON.stringify(storeData[game_type])) {
+        console.log("ignore to render embedded");
+        res.send("OK")
+        return
+    }
+
+    storeData[game_type] = data
+
     const guild = client.guilds.cache.get(GUILD_ID)
     var game_channels_map = {
         "singleplayer": "🕹-p2e-singleplayer",
@@ -86,11 +102,13 @@ app.post("/tigger/inviteation", async (req, res) => {
         "free2play": "🕹-free2play2earn",
         "survivor": "🕹-p2e-survivor"
     }
+
     var channel_name = game_channels_map[game_type]
     if (channel_name == undefined) {
         res.status(404).send("game type not found")
         return
     }
+
     const channel = await guild.channels.cache.find((channelItem) => channelItem.name == channel_name)
     if (channel) {
         var messages = await channel.messages.fetch({ limit: 100 })
@@ -122,7 +140,7 @@ app.post("/tigger/inviteation", async (req, res) => {
 
         for (const gameRecord of data) {
 
-            
+
             const embed = new EmbedBuilder()
                 .setColor(0x0099FF)
                 .setTitle(gameRecord.game_name)
@@ -177,7 +195,6 @@ app.post("/tigger/inviteation", async (req, res) => {
             // console.log(`Created thread: ${thread.name}`);
         }
     }
-
 
     res.send("OK")
 
@@ -355,10 +372,10 @@ app.listen(port, () => {
                     if (!validateEmail(email)) return await interaction.reply({ content: `❗️ incoret email format plase try again later`, ephemeral: true });
 
                     var member = (interaction.member == null) ? interaction.user : interaction.member.user
-                   
-                    
+
+
                     try {
-                        
+
                         var result = await submit_link_account_with_email(email, member.id)
 
                         if (result.status == true) {
@@ -368,9 +385,9 @@ app.listen(port, () => {
                             }
 
                             var guild = client.guilds.cache.get(GUILD_ID)
-                            
-                             var role = await guild.roles.cache.find(role => role.name === "member");
-                            
+
+                            var role = await guild.roles.cache.find(role => role.name === "member");
+
                             if (role) {
                                 var member = await guild.members.cache.get(member.id) || await guild.members.fetch(member.id).catch(err => { });
 
@@ -433,7 +450,7 @@ app.listen(port, () => {
             });
 
             client.on('guildMemberAdd', async (member) => {
-                console.log("new player comening member",member.id);
+                console.log("new player comening member", member.id);
                 await wellcomeMessageDM(member)
                 //await member.guild.channels.get(SERVER_MESSAGE_CHANNEL_ID).send("Welcome");
             });
