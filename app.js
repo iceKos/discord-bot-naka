@@ -82,6 +82,29 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
 
 })
 
+app.post("/tigger/sync_level", async (req, res) => {
+    var { data } = req.body
+    var guild = client.guilds.cache.get(GUILD_ID)
+    for (const user of data) {
+        const { discord_id, level } = user
+        try {
+
+            var member = await guild.members.fetch(discord_id)
+
+            if (member) {
+                await member.setNickname(`${member.user.username} LV ${level}`)
+            } else {
+                console.log("Not found User discord");
+            }
+        } catch (error) {
+            console.log("cannot setNickname", user);
+        }
+
+    }
+    
+    res.send("sync levels")
+})
+
 
 app.post("/tigger/inviteation", async (req, res) => {
     const { data, game_type } = req.body
@@ -661,6 +684,6 @@ client.once('ready', async () => {
     //await wellcomeMessage(client)
     // await coinTracking()
     cron.schedule('*/7 * * * *', function () {
-        coinTracking().catch(console.dir);
+        // coinTracking().catch(console.dir);
     });
 });
