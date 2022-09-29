@@ -686,6 +686,6 @@ client.once('ready', async () => {
     //await wellcomeMessage(client)
     // await coinTracking()
     cron.schedule('*/7 * * * *', function () {
-        // coinTracking().catch(console.dir);
+        coinTracking().catch(console.dir);
     });
 });
