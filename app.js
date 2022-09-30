@@ -427,7 +427,7 @@ app.listen(port, () => {
                             if (role) {
                                 var member = await guild.members.cache.get(member.id) || await guild.members.fetch(member.id).catch(err => { });
 
-                                //  var data = await member.roles.add(role)
+                                var data = await member.roles.add(role)
                                 var owner = await guild.fetchOwner()
                                 if (owner.user.id != member.id) {
                                     if (member) {
