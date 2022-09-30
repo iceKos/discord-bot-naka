@@ -93,6 +93,7 @@ app.post("/tigger/sync_level", async (req, res) => {
 
             if (member) {
                 await member.setNickname(`${member.user.username} LV ${level}`)
+                console.log(`${member.user.username} LV ${level}`,"DONE");
             } else {
                 console.log("Not found User discord");
             }
