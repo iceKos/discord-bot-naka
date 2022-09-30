@@ -173,7 +173,12 @@ app.post("/tigger/inviteation", async (req, res) => {
 
             for (const item_list of gameRecord.item_list) {
                 var link_join_game = `[${item_list.room_list.length} ROOM](${item_list.room_list_url})`
-                embed.addFields({ name: `${item_list.item_name} ${item_list.item_size}`, value: link_join_game, inline: true })
+                if(game_type == "free2play"){
+                    embed.addFields({ name: `LINK`, value: link_join_game, inline: true })
+                }else{
+                    embed.addFields({ name: `${item_list.item_name} ${item_list.item_size}`, value: link_join_game, inline: true })
+                }
+                
             }
             embed.setTimestamp()
 
