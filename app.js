@@ -89,7 +89,7 @@ app.post("/tigger/sync_level", async (req, res) => {
         const { discord_id, level } = user
         try {
 
-            var member = await guild.members.fetch(discord_id)
+            var member = await guild.members.cache.get(discord_id) || await guild.members.fetch(discord_id).catch(err => { });
 
             if (member) {
                 await member.setNickname(`${member.user.username} LV ${level}`)
