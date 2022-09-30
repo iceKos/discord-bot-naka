@@ -407,7 +407,7 @@ app.listen(port, () => {
                                 level = 0
                             }
 
-                            var guild = client.guilds.cache.get(GUILD_ID)
+                            var guild = await client.guilds.cache.get(GUILD_ID)
 
                             var role = await guild.roles.cache.find(role => role.name === "member");
 
