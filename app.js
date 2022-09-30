@@ -414,7 +414,7 @@ app.listen(port, () => {
                             if (role) {
                                 var member = await guild.members.cache.get(member.id) || await guild.members.fetch(member.id).catch(err => { });
 
-                                var data = member.roles.add(role)
+                                var data = await member.roles.add(role)
                                 var owner = await guild.fetchOwner()
                                 if (owner.user.id != member.id) {
                                     if (member) {
@@ -423,8 +423,8 @@ app.listen(port, () => {
                                 }
                             }
                             // prepare for reward coupon
-                            //await interaction.reply({ content: `✅ Thank you to join us <@${member.id}>!\nYour email is \`${email}\` \n Coupon code \`FREEITEMNAKA\`  Go to our platform to claim your rewards! [let's play games](https://www.nakamoto.games/coupon)`, ephemeral: true });
-                            await interaction.reply({ content: `✅ Thank you to join us <@${member.user.id}>!\nYour email is \`${email}\` \nGo to our platform to claim your rewards! [let's play games](https://nakamoto.games)`, ephemeral: true });
+                            await interaction.reply({ content: `✅ Thank you to join us <@${member.id}>!\nYour email is \`${email}\` \n Coupon code \`FREEITEMNAKA\`  Go to our platform to claim your rewards! [let's play games](https://www.nakamoto.games/coupon)`, ephemeral: true });
+                            //await interaction.reply({ content: `✅ Thank you to join us <@${member.user.id}>!\nYour email is \`${email}\` \nGo to our platform to claim your rewards! [let's play games](https://nakamoto.games)`, ephemeral: true });
                        
                         } else {
                             await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
