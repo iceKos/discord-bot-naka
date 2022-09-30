@@ -85,6 +85,9 @@ app.post("/tigger/levelup/:discord_id", async (req, res) => {
 app.post("/tigger/sync_level", async (req, res) => {
     var { data } = req.body
     var guild = client.guilds.cache.get(GUILD_ID)
+    var role = await guild.roles.cache.find(role => role.name === "member");
+
+                            
     for (const user of data) {
         const { discord_id, level } = user
         try {
@@ -94,6 +97,10 @@ app.post("/tigger/sync_level", async (req, res) => {
             if (member) {
                 await member.setNickname(`${member.user.username} LV ${level}`)
                 console.log(`${member.user.username} LV ${level}`,"DONE");
+                if (role) {
+                    await member.roles.add(role)
+                    console.log(member.user.username,"set role done ");
+                }
             } else {
                 console.log("Not found User discord");
             }
