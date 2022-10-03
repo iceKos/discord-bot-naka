@@ -451,6 +451,7 @@ app.listen(port, () => {
                     return
 
                 } else {
+                    console.log(interaction);
                     return
                 }
             });
