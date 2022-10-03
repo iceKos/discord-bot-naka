@@ -8,7 +8,7 @@ dotenv.config();
 // Require the necessary discord.js classes
 const { Client, hyperlink, EmbedBuilder, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials, CategoryChannel } = require('discord.js');
 const { REST } = require('@discordjs/rest');
-const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAGE_CHANNEL_ID, COINMARKETCAP_API_KEY } = process.env;
+const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAGE_CHANNEL_ID, COINMARKETCAP_API_KEY,WELLCOME_CHANNEL_ID } = process.env;
 const app = express()
 const port = 3000
 const axios = require("axios")
