@@ -6,9 +6,9 @@ const cron = require('node-cron');
 const _ = require('underscore')
 dotenv.config();
 // Require the necessary discord.js classes
-const { Client, hyperlink, EmbedBuilder, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials, CategoryChannel } = require('discord.js');
+const { GuildScheduledEventEntityType, GuildScheduledEventPrivacyLevel, Client, hyperlink, EmbedBuilder, ButtonBuilder, GatewayIntentBits, SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonStyle, Routes, Partials, CategoryChannel } = require('discord.js');
 const { REST } = require('@discordjs/rest');
-const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAGE_CHANNEL_ID, COINMARKETCAP_API_KEY,WELLCOME_CHANNEL_ID } = process.env;
+const { DISCORD_TOKEN, APP_ID, PUBLIC_KEY, GUILD_ID, API_NAKAMOTO, SERVER_MESSAGE_CHANNEL_ID, COINMARKETCAP_API_KEY, WELLCOME_CHANNEL_ID } = process.env;
 const app = express()
 const port = 3000
 const axios = require("axios")
@@ -16,7 +16,13 @@ var coin = JSON.parse(fs.readFileSync("./coin.json", "utf8"))
 const PASSWORD_COMMAND = "naka_token"
 // Create a new client instance
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildScheduledEvents,
+    ],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
@@ -32,13 +38,14 @@ app.use(
         extended: true,
     })
 );
-
+//GuildScheduledEventEntityMetadataOptions
 var storeData = {
     "singleplayer": [],
     "multiplayer": [],
     "free2play": [],
     "survivor": []
 }
+
 
 app.get('/', (req, res) => {
     res.json({
@@ -87,7 +94,7 @@ app.post("/tigger/sync_level", async (req, res) => {
     var guild = client.guilds.cache.get(GUILD_ID)
     var role = await guild.roles.cache.find(role => role.name === "member");
 
-                            
+
     for (const user of data) {
         const { discord_id, level } = user
         try {
@@ -96,10 +103,10 @@ app.post("/tigger/sync_level", async (req, res) => {
 
             if (member) {
                 await member.setNickname(`${member.user.username} LV ${level}`)
-                console.log(`${member.user.username} LV ${level}`,"DONE");
+                console.log(`${member.user.username} LV ${level}`, "DONE");
                 if (role) {
                     await member.roles.add(role)
-                    console.log(member.user.username,"set role done ");
+                    console.log(member.user.username, "set role done ");
                 }
             } else {
                 console.log("Not found User discord");
@@ -181,12 +188,12 @@ app.post("/tigger/inviteation", async (req, res) => {
 
             for (const item_list of gameRecord.item_list) {
                 var link_join_game = `[${item_list.room_list.length} ROOM](${item_list.room_list_url})`
-                if(game_type == "free2play"){
+                if (game_type == "free2play") {
                     embed.addFields({ name: `LINK`, value: link_join_game, inline: true })
-                }else{
+                } else {
                     embed.addFields({ name: `${item_list.item_name} ${item_list.item_size}`, value: link_join_game, inline: true })
                 }
-                
+
             }
             embed.setTimestamp()
 
@@ -244,6 +251,7 @@ app.listen(port, () => {
 
             // register command to bot discord
             const commands = [
+                new SlashCommandBuilder().setName('create_event').setDescription("this command use for test create event only"),
                 new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
                 new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
                 new SlashCommandBuilder().setName('add_coin').setDescription('Add new coin to list tracking')
@@ -372,6 +380,13 @@ app.listen(port, () => {
                         }
                         await interaction.reply({ content: mentions.replace(/[\\<>@#&!]/g, ""), ephemeral: true })
                         return
+                    } else if (commandName === 'create_event') {
+                        try {
+                            await CreateEvent()
+                            await interaction.reply({ content: "Create Event it done", ephemeral: true })
+                        } catch (error) {
+                            await interaction.reply({ content: "Create Event Error", ephemeral: true })
+                        }
                     }
                 } else if (interaction.isButton()) {
 
@@ -436,7 +451,7 @@ app.listen(port, () => {
                                 }
                             }
                             // prepare for reward coupon
-                            
+
                             await interaction.reply({ content: `✅ Thank you to join us <@${member.id}>!\nYour email is \`${email}\` \n Coupon code \`ILOVENAKA\`  Go to our platform to claim your rewards! [let's play games](https://www.nakamoto.games/coupon)`, ephemeral: true });
                             //await interaction.reply({ content: `✅ Thank you to join us <@${member.user.id}>!\nYour email is \`${email}\` \nGo to our platform to claim your rewards! [let's play games](https://nakamoto.games)`, ephemeral: true });
 
@@ -494,8 +509,11 @@ app.listen(port, () => {
                 await wellcomeMessageDM(member)
                 //await member.guild.channels.get(SERVER_MESSAGE_CHANNEL_ID).send("Welcome");
             });
+
+
         })
         .catch((error) => {
+            console.log(DISCORD_TOKEN);
             console.log("Discord Server it not ready", error.message);
             process.exit(0);
         })
@@ -526,6 +544,43 @@ async function reaction_event(discord_account_id, exp) {
             console.log(error);
             throw new Error("Cannot connect to API nakamoto.game")
         })
+}
+
+async function CreateEvent() {
+    try {
+        var guild = client.guilds.cache.get(GUILD_ID)
+        if (guild) {
+
+            // Get the current date
+            const currentDate = new Date();
+
+            // Get the date for tomorrow
+            const tomorrowDate = new Date();
+            tomorrowDate.setDate(currentDate.getDate() + 1);
+
+            // Get the date for the next two days
+            const nextTwoDaysDate = new Date();
+            nextTwoDaysDate.setDate(currentDate.getDate() + 2);
+
+            var event = await guild.scheduledEvents.create({
+                name: "Test Event",
+                description: "For test only",
+                scheduledStartTime: tomorrowDate.toISOString(),
+                scheduledEndTime: nextTwoDaysDate.toISOString(),
+                entityType: GuildScheduledEventEntityType.External,
+                privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
+                entityMetadata: { location: "https://www.nakamoto.games" }
+            })
+
+            return true
+        } else {
+            throw new Error("guild not found ")
+        }
+    } catch (error) {
+        console.log(error);
+        throw error
+    }
+
 }
 
 async function wellcomeMessage(_client) {
