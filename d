@@ -45,7 +45,7 @@
         "_id": "61b10b80ea379415e8b88f14",
         "naka_earn": 9927.239640000002,
         "username": "Danniej123",
-        "avatar": "assets/images/avatar/Rank2.png"
+        "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_4/8590739e7447041975cd522cd17c39ef/image/8590739e7447041975cd522cd17c39ef.Rank4.png"
     },
     {
         "_id": "635c19c79d357003fd0740d1",
@@ -55,7 +55,7 @@
     },
     {
         "_id": "61b0f211c5c7011225d4cbfb",
-        "naka_earn": 8741.98611,
+        "naka_earn": 8769.57011,
         "username": "patrykoS",
         "avatar": "https://nakamoto-prod-new.s3.eu-central-1.amazonaws.com/naka-punk-new/4171.png"
     }
