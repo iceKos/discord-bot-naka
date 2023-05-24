@@ -243,6 +243,13 @@ app.post("/tigger/inviteation", async (req, res) => {
 
 })
 
+app.post("/tigger/create_event", async (req, res) => {
+    const { data, game_type } = req.body
+    const response = await CreateEvent()
+    res.status(200).json({ data: response });
+
+})
+
 
 app.listen(port, () => {
     // Login to Discord with your client's DISCORD_TOKEN
@@ -587,7 +594,7 @@ async function CreateEvent() {
                 entityMetadata: { location: "https://www.nakamoto.games" }
             })
 
-            return true
+            return event
         } else {
             throw new Error("guild not found ")
         }
