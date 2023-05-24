@@ -778,15 +778,50 @@ async function renderTopPlayer(data ) {
     // console.log(game_cat)
     // find category channel
     var find_top_player_chanel = await guild.channels.cache.find((data) => {
-        return data.parentId == game_cat.id
+        return data.parentId == game_cat.id && data.name == 'top-player'
     })
-    if (!find_top_player_chanel) {
-        await guild.channels.create({
-            type: TYPE_CHANNEL.TEXT,
-            name : 'TOP PLAYER',
-            parent : game_cat.id
-        })
+    if (find_top_player_chanel) {
+        await find_top_player_chanel.delete()
+    } 
+    find_top_player_chanel = await guild.channels.create({
+        type: TYPE_CHANNEL.TEXT,
+        name : 'top-player',
+        parent : game_cat.id
+    })
+    var runing = 1
+    for (const data of rank) {
+        try {
+            const exampleEmbed = new EmbedBuilder()
+            .setColor(0x0099FF)
+            .setTitle(`No. #${runing}`)
+            .setURL('https://discord.js.org/')
+            .setAuthor({ name: 'Nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png', url: 'https://www.nakamoto.games/' })
+            .setDescription(`Username : ${data.username}`)
+            .setThumbnail(`${data.avatar}`)
+            .addFields(
+                { name: 'Naka Earn', value: `${data.naka_earn}` },
+                // { name: '\u200B', value: '\u200B' },
+                // { name: 'Inline field title', value: 'Some value here', inline: true },
+                // { name: 'Inline field title', value: 'Some value here', inline: true },
+            )
+            // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
+            // .setImage('https://i.imgur.com/AfFp7pu.png')
+            .setTimestamp()
+            .setFooter({ text: 'nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png' });
+    
+            await find_top_player_chanel.send({ embeds: [exampleEmbed] });
+            runing++
+
+        } catch (error) {
+            console.log(error)
+            continue;
+        }
+       
     }
+        
+
+    
+    
 }
 
 // When the client is ready, run this code (only once)-
