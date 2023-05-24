@@ -244,8 +244,8 @@ app.post("/tigger/inviteation", async (req, res) => {
 })
 
 app.post("/tigger/create_event", async (req, res) => {
-    const { data, game_type } = req.body
-    const response = await CreateEvent()
+    const { event_id,name,description,start_time,end_time,image,type_event='events' } = req.body
+    const response = await CreateEvent(event_id,name,description,start_time,end_time,image,type_event)
     res.status(200).json({ data: response });
 
 })
@@ -568,30 +568,31 @@ async function reaction_event(discord_account_id, exp) {
         })
 }
 
-async function CreateEvent() {
+async function CreateEvent(event_id,name,description,start_time,end_time,image,event_type) {
     try {
         var guild = client.guilds.cache.get(GUILD_ID)
         if (guild) {
 
             // Get the current date
-            const currentDate = new Date();
+            // const currentDate = new Date(start_time);
 
             // Get the date for tomorrow
-            const tomorrowDate = new Date();
-            tomorrowDate.setDate(currentDate.getDate() + 1);
+            const start = new Date(start_time);
+            // tomorrowDate.setDate(currentDate.getDate() + 1);
 
             // Get the date for the next two days
-            const nextTwoDaysDate = new Date();
-            nextTwoDaysDate.setDate(currentDate.getDate() + 2);
+            const end = new Date(end_time);
+            // nextTwoDaysDate.setDate(currentDate.getDate() + 2);
 
             var event = await guild.scheduledEvents.create({
-                name: "Test Event",
-                description: "For test only",
-                scheduledStartTime: tomorrowDate.toISOString(),
-                scheduledEndTime: nextTwoDaysDate.toISOString(),
+                name: name,
+                description: description,
+                scheduledStartTime: start.toISOString(),
+                scheduledEndTime: end.toISOString(),
                 entityType: GuildScheduledEventEntityType.External,
                 privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
-                entityMetadata: { location: "https://www.nakamoto.games" }
+                entityMetadata: { location: `https://www.nakamoto.games/${event_type}/${event_id}` }, // type: events or type: tournament
+                image: image
             })
 
             return event
