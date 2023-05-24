@@ -629,8 +629,6 @@ async function wellcomeMessageDM(member) {
                 .setStyle(ButtonStyle.Success),
         )
 
-
-
     await member.send({ content: `link your Discord's account (Email) with our platform`, components: [row] });
     await member.send({ content: `After linked your Discord's account (Email) with our platform,  you need to check our documentation: https://docs.nakamoto.games/ to getting to know more about us. 🙂` });
 }
@@ -689,7 +687,7 @@ async function coinTracking() {
 
                 var sideColor = (dataCoinMarketCap[coinName].quote.USD.percent_change_24h > 0) ? 0x6BFA12 : 0xFA122C
                 // inside a command, event listener, etc.
-                const player = new EmbedBuilder()
+                const embedCoin = new EmbedBuilder()
                     .setColor(sideColor)
                     .setTitle(dataCoinMarketCap[coinName].name)
                     .setURL(`https://coinmarketcap.com/currencies/${dataCoinMarketCap[coinName].slug}/`)
@@ -714,7 +712,7 @@ async function coinTracking() {
                     var messages = await channelCoin.messages.fetch({ limit: 10 })
                     messages.forEach(async message => {
                         if (message.embeds.length > 0) {
-                            await message.edit({ embeds: [player] })
+                            await message.edit({ embeds: [embedCoin] })
                         } else {
                             console.log("ignore mossage");
                         }
@@ -725,7 +723,7 @@ async function coinTracking() {
                         name: `${coinName}-USDT`,
                         parent: cryptoCategory.id
                     })
-                    await channelCoin.send({ embeds: [player] });
+                    await channelCoin.send({ embeds: [embedCoin] });
                 }
             }
 
@@ -775,17 +773,23 @@ async function getCoinMarketCap(coinArray = []) {
 async function renderTopPlayer() {
     try {
         console.log("renderTopPlayer Working");
-        
+
         var rank = await axios.get(`${API_NAKAMOTO}/api/game/ranks-all`)
-        .then((response) => {
-            return response.data
-        })
-        .catch((error) => {
-            console.log(error);
-            throw new Error("Cannot connect to API nakamoto.game")
+            .then((response) => {
+                return response.data
+            })
+            .catch((error) => {
+                console.log(error);
+                throw new Error("Cannot connect to API nakamoto.game")
+            })
+
+
+        rank = rank.map((x, index) => {
+            x.no = (index + 1)
+            return x
         })
 
-        rank.length = 10
+        // console.log(rank);
 
         const cat_name = 'GAME-PLAYER'
         const guild = client.guilds.cache.get(GUILD_ID)
@@ -802,50 +806,75 @@ async function renderTopPlayer() {
             })
             game_cat = cat
         }
-        // console.log(game_cat)
         // find category channel
         var find_top_player_chanel = await guild.channels.cache.find((data) => {
             return data.parentId == game_cat.id && data.name == 'top-player'
         })
-        if (find_top_player_chanel) {
-            await find_top_player_chanel.delete()
-        }
-        find_top_player_chanel = await guild.channels.create({
-            type: TYPE_CHANNEL.TEXT,
-            name: 'top-player',
-            parent: game_cat.id
-        })
-        var runing = 1
-        for (const data of rank) {
-            try {
-                data.naka_earn = data.naka_earn.toFixed(2)
-                data.naka_earn = Number(data.naka_earn)
-                let player = new EmbedBuilder()
-                    .setColor(0x0099FF)
-                    .setTitle(`No. #${runing}`)
-                    .setURL('https://www.nakamoto.games')
-                    .setAuthor({ name: 'Nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png', url: 'https://www.nakamoto.games/' })
-                    .setDescription(`Username : ${data.username}`)
-                    .setThumbnail(`${data.avatar}`)
-                    .addFields(
-                        { name: 'Naka Earn', value: `${data.naka_earn.toLocaleString('en-US')} naka` },
+        if (!find_top_player_chanel) {
+            find_top_player_chanel = await guild.channels.create({
+                type: TYPE_CHANNEL.TEXT,
+                name: 'top-player',
+                parent: game_cat.id
+            })
 
-                    )
-                    .setTimestamp()
-                    .setFooter({ text: 'nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png' });
+            var runing = 1
+            for (const data of rank) {
+                try {
+                    var embed_player = embedPlayer(data)
+                    await find_top_player_chanel.send({ embeds: [embed_player] });
+                    runing++
 
-                await find_top_player_chanel.send({ embeds: [player] });
-                runing++
-
-            } catch (error) {
-                throw new Error(`Cannot create Player ${data.username} `)
+                } catch (error) {
+                    console.log(error);
+                    throw new Error(`Cannot create Player ${data.username} `)
+                }
             }
+        } else {
+            // have to update embed
+            var fetch_message = await find_top_player_chanel.messages.fetch({ limit: 100 })
+            await fetch_message.forEach(async (message) => {
+                if (message.embeds.length > 0) {
+                    var regex = /No\. #(\d+)/;
+                    var input = message.embeds[0].data.title;
+                    var match = input.match(regex);
+                    if (match) {
+                        var tag_no = match[1];
+                        var find_rank_data = rank.find(x => Number(x.no) == Number(tag_no))
+                        if (find_rank_data) {
+                            var embed_player = embedPlayer(find_rank_data)
+                            await message.edit({ embeds: [embed_player] })
+                        }
+
+                    }
+                }
+            })
         }
+
         console.log("renderTopPlayer Done");
         return true
     } catch (error) {
         throw error;
     }
+}
+
+function embedPlayer(data) {
+    data.naka_earn = data.naka_earn.toFixed(2)
+    data.naka_earn = Number(data.naka_earn)
+    let player = new EmbedBuilder()
+        .setColor(0xFA122C)
+        .setTitle(`No. #${data.no}`)
+        .setURL('https://www.nakamoto.games')
+        .setAuthor({ name: 'Nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png', url: 'https://www.nakamoto.games/' })
+        .setDescription(`Username : ${data.username}`)
+        .setThumbnail(`${data.avatar}`)
+        .addFields(
+            { name: 'Naka Earn', value: `${data.naka_earn.toLocaleString('en-US')} naka` },
+
+        )
+        .setTimestamp()
+        .setFooter({ text: 'nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png' });
+
+    return player
 }
 
 // When the client is ready, run this code (only once)-
@@ -855,9 +884,9 @@ client.once('ready', async () => {
     cron.schedule('*/7 * * * *', function () {
         coinTracking().catch(console.dir);
     });
-    
+
     // run every hour
-    cron.schedule("0 * * * *",function () {
+    cron.schedule("0 * * * *", function () {
         renderTopPlayer().catch(console.dir);
     })
     // for test run diractly
