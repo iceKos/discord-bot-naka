@@ -294,112 +294,19 @@ app.listen(port, () => {
 
             // handle interaction listen
             client.on('interactionCreate', async interaction => {
+                console.log("interactionCreate coming");
+                try {
+                    if (interaction.isChatInputCommand()) {
+                        const { commandName } = interaction;
+                        const string = interaction.options.getString('input');
 
-                if (interaction.isChatInputCommand()) {
-                    const { commandName } = interaction;
-                    const string = interaction.options.getString('input');
-
-                    if (commandName === 'ping') {
-                        await interaction.reply('Pong!');
-                    } else if (commandName === 'server') {
-                        await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
-                    } else if (commandName === 'user') {
-                        await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
-                    } else if (commandName === 'link_account') {
-                        const modal = new ModalBuilder()
-                            .setCustomId('nakamoto-email-modal')
-                            .setTitle('Nakamoto');
-
-                        // Create the text input components
-                        const favoriteColorInput = new TextInputBuilder()
-                            .setCustomId('emailNakamoto')
-                            // The label is the prompt the user sees for this input
-                            .setLabel("What's your email in nakamoto.games ?")
-                            // Short means only a single line of text
-                            .setStyle(TextInputStyle.Short);
-
-                        // An action row only holds one text input,
-                        // so you need one action row per text input.
-                        const firstActionRow = new ActionRowBuilder().addComponents(favoriteColorInput);
-
-                        // Add inputs to the modal
-                        modal.addComponents(firstActionRow);
-                        await interaction.showModal(modal)
-                    } else if (commandName == "add_coin") {
-                        var coin_input = interaction.options.getString('coin')
-                        var password = interaction.options.getString('password')
-                        if (password) {
-                            if (password != PASSWORD_COMMAND) {
-                                await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
-                                return
-                            }
-                        } else {
-                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
-                            return
-                        }
-                        if (coin_input) {
-                            add_coin(coin_input)
-                            await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
-                        } else {
-                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
-                        }
-
-                    } else if (commandName == "remove_coin") {
-                        var coin_input = interaction.options.getString('coin')
-                        var password = interaction.options.getString('password')
-                        if (password) {
-                            if (password != PASSWORD_COMMAND) {
-                                await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
-                                return
-                            }
-                        } else {
-                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
-                            return
-                        }
-                        if (coin_input) {
-                            await remove_coin(coin_input)
-                            await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
-                        } else {
-                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
-                        }
-
-                        return
-                    } else if (commandName == "list_coin") {
-                        await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
-                        return
-                    } else if (commandName == "show_id_user") {
-                        var mentions = interaction.options.getString('user_mention')
-                        var password = interaction.options.getString('password')
-                        if (password) {
-                            if (password != PASSWORD_COMMAND) {
-                                await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
-                                return
-                            }
-                        } else {
-                            await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
-                            return
-                        }
-                        await interaction.reply({ content: mentions.replace(/[\\<>@#&!]/g, ""), ephemeral: true })
-                        return
-                    } else if (commandName === 'create_event') {
-                        try {
-                            await CreateEvent()
-                            await interaction.reply({ content: "Create Event it done", ephemeral: true })
-                        } catch (error) {
-                            await interaction.reply({ content: "Create Event Error", ephemeral: true })
-                        }
-                    } else if (commandName === 'create_top_player') {
-                        try {
-                            await renderTopPlayer()
-                            await interaction.reply({ content: "Create top player it done", ephemeral: true })
-                        } catch (error) {
-                            await interaction.reply({ content: "Create top player Error", ephemeral: true })
-                        }
-                    }
-                } else if (interaction.isButton()) {
-
-                    switch (interaction.customId) {
-                        case "link_account_button": {
+                        if (commandName === 'ping') {
+                            await interaction.reply('Pong!');
+                        } else if (commandName === 'server') {
+                            await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
+                        } else if (commandName === 'user') {
+                            await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
+                        } else if (commandName === 'link_account') {
                             const modal = new ModalBuilder()
                                 .setCustomId('nakamoto-email-modal')
                                 .setTitle('Nakamoto');
@@ -419,64 +326,164 @@ app.listen(port, () => {
                             // Add inputs to the modal
                             modal.addComponents(firstActionRow);
                             await interaction.showModal(modal)
-                            break;
-                        }
-                        default:
-                            break;
-                    }
-                    return
-                } else if (interaction.isModalSubmit()) {
-                    const email = interaction.fields.getTextInputValue('emailNakamoto');
-
-                    if (!validateEmail(email)) return await interaction.reply({ content: `❗️ incoret email format plase try again later`, ephemeral: true });
-
-                    var member = (interaction.member == null) ? interaction.user : interaction.member.user
-
-
-                    try {
-
-                        var result = await submit_link_account_with_email(email, member.id)
-
-                        if (result.status == true) {
-                            var { level } = result.data
-                            if (level == undefined) {
-                                level = 0
+                        } else if (commandName == "add_coin") {
+                            var coin_input = interaction.options.getString('coin')
+                            var password = interaction.options.getString('password')
+                            if (password) {
+                                if (password != PASSWORD_COMMAND) {
+                                    await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
+                                    return
+                                }
+                            } else {
+                                await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                                return
+                            }
+                            if (coin_input) {
+                                add_coin(coin_input)
+                                await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
+                            } else {
+                                await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
                             }
 
-                            var guild = await client.guilds.cache.get(GUILD_ID)
+                        } else if (commandName == "remove_coin") {
+                            var coin_input = interaction.options.getString('coin')
+                            var password = interaction.options.getString('password')
+                            if (password) {
+                                if (password != PASSWORD_COMMAND) {
+                                    await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
+                                    return
+                                }
+                            } else {
+                                await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                                return
+                            }
+                            if (coin_input) {
+                                await remove_coin(coin_input)
+                                await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
+                            } else {
+                                await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                            }
 
-                            var role = await guild.roles.cache.find(role => role.name === "member");
+                            return
+                        } else if (commandName == "list_coin") {
+                            await interaction.reply({ content: "```text\n" + coin.join("\n") + " ```", ephemeral: true })
+                            return
+                        } else if (commandName == "show_id_user") {
+                            var mentions = interaction.options.getString('user_mention')
+                            var password = interaction.options.getString('password')
+                            if (password) {
+                                if (password != PASSWORD_COMMAND) {
+                                    await interaction.reply({ content: `You not have permission for this command`, ephemeral: true })
+                                    return
+                                }
+                            } else {
+                                await interaction.reply({ content: `invalid command ${commandName}`, ephemeral: true })
+                                return
+                            }
+                            await interaction.reply({ content: mentions.replace(/[\\<>@#&!]/g, ""), ephemeral: true })
+                            return
+                        } else if (commandName === 'create_event') {
+                            try {
+                                await CreateEvent()
+                                await interaction.reply({ content: "Create Event it done", ephemeral: true })
+                            } catch (error) {
+                                await interaction.reply({ content: "Create Event Error", ephemeral: true })
+                            }
+                        } else if (commandName === 'create_top_player') {
+                            try {
+                                await renderTopPlayer()
+                                await interaction.reply({ content: "Create top player it done", ephemeral: true })
+                            } catch (error) {
+                                await interaction.reply({ content: "Create top player Error", ephemeral: true })
+                            }
+                        }
+                    } else if (interaction.isButton()) {
 
-                            if (role) {
-                                var member = await guild.members.cache.get(member.id) || await guild.members.fetch(member.id).catch(err => { });
+                        switch (interaction.customId) {
+                            case "link_account_button": {
+                                const modal = new ModalBuilder()
+                                    .setCustomId('nakamoto-email-modal')
+                                    .setTitle('Nakamoto');
 
-                                var data = await member.roles.add(role)
-                                var owner = await guild.fetchOwner()
-                                if (owner.user.id != member.id) {
-                                    if (member) {
-                                        await member.setNickname(`${member.user.username} LV ${level}`)
+                                // Create the text input components
+                                const favoriteColorInput = new TextInputBuilder()
+                                    .setCustomId('emailNakamoto')
+                                    // The label is the prompt the user sees for this input
+                                    .setLabel("What's your email in nakamoto.games ?")
+                                    // Short means only a single line of text
+                                    .setStyle(TextInputStyle.Short);
+
+                                // An action row only holds one text input,
+                                // so you need one action row per text input.
+                                const firstActionRow = new ActionRowBuilder().addComponents(favoriteColorInput);
+
+                                // Add inputs to the modal
+                                modal.addComponents(firstActionRow);
+                                await interaction.showModal(modal)
+                                break;
+                            }
+                            default:
+                                break;
+                        }
+                        return
+                    } else if (interaction.isModalSubmit()) {
+                        const email = interaction.fields.getTextInputValue('emailNakamoto');
+
+                        if (!validateEmail(email)) return await interaction.reply({ content: `❗️ incoret email format plase try again later`, ephemeral: true });
+
+                        var member = (interaction.member == null) ? interaction.user : interaction.member.user
+
+
+                        try {
+
+                            var result = await submit_link_account_with_email(email, member.id)
+
+                            if (result.status == true) {
+                                var { level } = result.data
+                                if (level == undefined) {
+                                    level = 0
+                                }
+
+                                var guild = await client.guilds.cache.get(GUILD_ID)
+
+                                var role = await guild.roles.cache.find(role => role.name === "member");
+
+                                if (role) {
+                                    var member = await guild.members.cache.get(member.id) || await guild.members.fetch(member.id).catch(err => { });
+
+                                    var data = await member.roles.add(role)
+                                    var owner = await guild.fetchOwner()
+                                    if (owner.user.id != member.id) {
+                                        if (member) {
+                                            await member.setNickname(`${member.user.username} LV ${level}`)
+                                        }
                                     }
                                 }
+                                // prepare for reward coupon
+
+                                await interaction.reply({ content: `✅ Thank you to join us <@${member.id}>!\nYour email is \`${email}\` \n Coupon code \`ILOVENAKA\`  Go to our platform to claim your rewards! [let's play games](https://www.nakamoto.games/coupon)`, ephemeral: true });
+                                //await interaction.reply({ content: `✅ Thank you to join us <@${member.user.id}>!\nYour email is \`${email}\` \nGo to our platform to claim your rewards! [let's play games](https://nakamoto.games)`, ephemeral: true });
+
+                            } else {
+                                await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
                             }
-                            // prepare for reward coupon
-
-                            await interaction.reply({ content: `✅ Thank you to join us <@${member.id}>!\nYour email is \`${email}\` \n Coupon code \`ILOVENAKA\`  Go to our platform to claim your rewards! [let's play games](https://www.nakamoto.games/coupon)`, ephemeral: true });
-                            //await interaction.reply({ content: `✅ Thank you to join us <@${member.user.id}>!\nYour email is \`${email}\` \nGo to our platform to claim your rewards! [let's play games](https://nakamoto.games)`, ephemeral: true });
-
-                        } else {
-                            await interaction.reply({ content: `❗️ ${result.message}`, ephemeral: true })
+                        } catch (error) {
+                            console.log(error);
+                            await interaction.reply({ content: error.message, ephemeral: true })
                         }
-                    } catch (error) {
-                        console.log(error);
-                        await interaction.reply({ content: error.message, ephemeral: true })
+
+                        return
+
+                    } else {
+                        console.log(interaction);
+                        return
                     }
-
-                    return
-
-                } else {
-                    console.log(interaction);
-                    return
+                } catch (error) {
+                    console.log(error);
                 }
+
+
+
             });
 
             client.on('messageReactionAdd', async (reaction, user) => {
@@ -675,7 +682,7 @@ async function coinTracking() {
 
                 var sideColor = (dataCoinMarketCap[coinName].quote.USD.percent_change_24h > 0) ? 0x6BFA12 : 0xFA122C
                 // inside a command, event listener, etc.
-                const exampleEmbed = new EmbedBuilder()
+                const player = new EmbedBuilder()
                     .setColor(sideColor)
                     .setTitle(dataCoinMarketCap[coinName].name)
                     .setURL(`https://coinmarketcap.com/currencies/${dataCoinMarketCap[coinName].slug}/`)
@@ -700,7 +707,7 @@ async function coinTracking() {
                     var messages = await channelCoin.messages.fetch({ limit: 10 })
                     messages.forEach(async message => {
                         if (message.embeds.length > 0) {
-                            await message.edit({ embeds: [exampleEmbed] })
+                            await message.edit({ embeds: [player] })
                         } else {
                             console.log("ignore mossage");
                         }
@@ -711,7 +718,7 @@ async function coinTracking() {
                         name: `${coinName}-USDT`,
                         parent: cryptoCategory.id
                     })
-                    await channelCoin.send({ embeds: [exampleEmbed] });
+                    await channelCoin.send({ embeds: [player] });
                 }
             }
 
@@ -758,78 +765,85 @@ async function getCoinMarketCap(coinArray = []) {
     }
 }
 
-async function renderTopPlayer(data ) {
-    var rank = [{"_id":"61b0d7f5a9c230548a429347","naka_earn":23887.916222279764,"username":"Cryptodoi","avatar":"https://nakamoto-prod-new.s3.eu-central-1.amazonaws.com/naka-punk-new/8932.png"},{"_id":"635c15429d357003fd07284f","naka_earn":21275.43474227977,"username":"Mojo","avatar":"https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_3/f776bba25a55d3bf53181642d26812d7/image/f776bba25a55d3bf53181642d26812d7.Rank3.png"},{"_id":"61e26d3ebca1be50a6494d0f","naka_earn":12328.145851332036,"username":"Hybis","avatar":"https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_7/243f64b5f7316e94169161ad6ab4efd8/image/243f64b5f7316e94169161ad6ab4efd8.Rank7.png"},{"_id":"61e81f7eab90065c46f79aa5","naka_earn":11816.39871,"username":"Waen","avatar":"https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_17/59949370e16c7ba1e565712fd32d6901/image/7cab444d0c6030ab382e7bb5a1c58524.avatar17.png"},{"_id":"61e28933bca1be50a649a6ed","naka_earn":10771.411001332042,"username":"Chai","avatar":"https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_10/1573269daada86835f0a811ced27bfc3/image/1573269daada86835f0a811ced27bfc3.avatar10.png"},{"_id":"61feedff61f04a6fa627c7cd","naka_earn":10608.94503,"username":"Goodiepie","avatar":"https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_4/8590739e7447041975cd522cd17c39ef/image/8590739e7447041975cd522cd17c39ef.Rank4.png"},{"_id":"61fd74e461f04a6fa62260ee","naka_earn":10208.935110000002,"username":"Jannil","avatar":"https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_21/464ab071e51cdc365ffe9a787f11a8f2/image/464ab071e51cdc365ffe9a787f11a8f2.giphy%20%281%29.gif"},{"_id":"61b10b80ea379415e8b88f14","naka_earn":9927.239640000002,"username":"Danniej123","avatar":"https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_4/8590739e7447041975cd522cd17c39ef/image/8590739e7447041975cd522cd17c39ef.Rank4.png"},{"_id":"635c19c79d357003fd0740d1","naka_earn":8909.499240000001,"username":"Pon","avatar":"https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_9/733422c3072d271daa25e15b01863c2e/image/733422c3072d271daa25e15b01863c2e.avatar9.png"},{"_id":"61b0f211c5c7011225d4cbfb","naka_earn":8769.57011,"username":"patrykoS","avatar":"https://nakamoto-prod-new.s3.eu-central-1.amazonaws.com/naka-punk-new/4171.png"}]
-    const cat_name = 'GAME-PLAYER'
-    const guild = client.guilds.cache.get(GUILD_ID)
-    var find_top_player_chanel = await guild.channels.cache.find((data) => {
-        return data.name == cat_name
-    })
-    var game_cat = null
-    if(find_top_player_chanel) {
-        game_cat = find_top_player_chanel
-    } else {
-        var cat = await guild.channels.create({
-            type : TYPE_CHANNEL.CATEGORIES,
-            name : cat_name
+async function renderTopPlayer() {
+    try {
+        console.log("renderTopPlayer Working");
+        var rank = [{ "_id": "61b0d7f5a9c230548a429347", "naka_earn": 23887.916222279764, "username": "Cryptodoi", "avatar": "https://nakamoto-prod-new.s3.eu-central-1.amazonaws.com/naka-punk-new/8932.png" }, { "_id": "635c15429d357003fd07284f", "naka_earn": 21275.43474227977, "username": "Mojo", "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_3/f776bba25a55d3bf53181642d26812d7/image/f776bba25a55d3bf53181642d26812d7.Rank3.png" }, { "_id": "61e26d3ebca1be50a6494d0f", "naka_earn": 12328.145851332036, "username": "Hybis", "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_7/243f64b5f7316e94169161ad6ab4efd8/image/243f64b5f7316e94169161ad6ab4efd8.Rank7.png" }, { "_id": "61e81f7eab90065c46f79aa5", "naka_earn": 11816.39871, "username": "Waen", "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_17/59949370e16c7ba1e565712fd32d6901/image/7cab444d0c6030ab382e7bb5a1c58524.avatar17.png" }, { "_id": "61e28933bca1be50a649a6ed", "naka_earn": 10771.411001332042, "username": "Chai", "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_10/1573269daada86835f0a811ced27bfc3/image/1573269daada86835f0a811ced27bfc3.avatar10.png" }, { "_id": "61feedff61f04a6fa627c7cd", "naka_earn": 10608.94503, "username": "Goodiepie", "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_4/8590739e7447041975cd522cd17c39ef/image/8590739e7447041975cd522cd17c39ef.Rank4.png" }, { "_id": "61fd74e461f04a6fa62260ee", "naka_earn": 10208.935110000002, "username": "Jannil", "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_21/464ab071e51cdc365ffe9a787f11a8f2/image/464ab071e51cdc365ffe9a787f11a8f2.giphy%20%281%29.gif" }, { "_id": "61b10b80ea379415e8b88f14", "naka_earn": 9927.239640000002, "username": "Danniej123", "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_4/8590739e7447041975cd522cd17c39ef/image/8590739e7447041975cd522cd17c39ef.Rank4.png" }, { "_id": "635c19c79d357003fd0740d1", "naka_earn": 8909.499240000001, "username": "Pon", "avatar": "https://nakamoto-s3.s3.ap-southeast-1.amazonaws.com/setting/avatar/avatar_9/733422c3072d271daa25e15b01863c2e/image/733422c3072d271daa25e15b01863c2e.avatar9.png" }, { "_id": "61b0f211c5c7011225d4cbfb", "naka_earn": 8769.57011, "username": "patrykoS", "avatar": "https://nakamoto-prod-new.s3.eu-central-1.amazonaws.com/naka-punk-new/4171.png" }]
+
+        rank.length = 10
+
+        const cat_name = 'GAME-PLAYER'
+        const guild = client.guilds.cache.get(GUILD_ID)
+        var find_top_player_chanel = await guild.channels.cache.find((data) => {
+            return data.name == cat_name
         })
-        game_cat = cat
-    }
-    // console.log(game_cat)
-    // find category channel
-    var find_top_player_chanel = await guild.channels.cache.find((data) => {
-        return data.parentId == game_cat.id && data.name == 'top-player'
-    })
-    if (find_top_player_chanel) {
-        await find_top_player_chanel.delete()
-    } 
-    find_top_player_chanel = await guild.channels.create({
-        type: TYPE_CHANNEL.TEXT,
-        name : 'top-player',
-        parent : game_cat.id
-    })
-    var runing = 1
-    for (const data of rank) {
-        try {
-            const exampleEmbed = new EmbedBuilder()
-            .setColor(0x0099FF)
-            .setTitle(`No. #${runing}`)
-            .setURL('https://discord.js.org/')
-            .setAuthor({ name: 'Nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png', url: 'https://www.nakamoto.games/' })
-            .setDescription(`Username : ${data.username}`)
-            .setThumbnail(`${data.avatar}`)
-            .addFields(
-                { name: 'Naka Earn', value: `${data.naka_earn}` },
-                // { name: '\u200B', value: '\u200B' },
-                // { name: 'Inline field title', value: 'Some value here', inline: true },
-                // { name: 'Inline field title', value: 'Some value here', inline: true },
-            )
-            // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
-            // .setImage('https://i.imgur.com/AfFp7pu.png')
-            .setTimestamp()
-            .setFooter({ text: 'nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png' });
-    
-            await find_top_player_chanel.send({ embeds: [exampleEmbed] });
-            runing++
-
-        } catch (error) {
-            console.log(error)
-            continue;
+        var game_cat = null
+        if (find_top_player_chanel) {
+            game_cat = find_top_player_chanel
+        } else {
+            var cat = await guild.channels.create({
+                type: TYPE_CHANNEL.CATEGORIES,
+                name: cat_name
+            })
+            game_cat = cat
         }
-       
-    }
-        
+        // console.log(game_cat)
+        // find category channel
+        var find_top_player_chanel = await guild.channels.cache.find((data) => {
+            return data.parentId == game_cat.id && data.name == 'top-player'
+        })
+        if (find_top_player_chanel) {
+            await find_top_player_chanel.delete()
+        }
+        find_top_player_chanel = await guild.channels.create({
+            type: TYPE_CHANNEL.TEXT,
+            name: 'top-player',
+            parent: game_cat.id
+        })
+        var runing = 1
+        for (const data of rank) {
+            try {
+                let player = new EmbedBuilder()
+                    .setColor(0x0099FF)
+                    .setTitle(`No. #${runing}`)
+                    .setURL('https://discord.js.org/')
+                    .setAuthor({ name: 'Nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png', url: 'https://www.nakamoto.games/' })
+                    .setDescription(`Username : ${data.username}`)
+                    .setThumbnail(`${data.avatar}`)
+                    .addFields(
+                        { name: 'Naka Earn', value: `${data.naka_earn}` },
 
-    
-    
+                    )
+                    .setTimestamp()
+                    .setFooter({ text: 'nakamoto.games', iconURL: 'https://www.nakamoto.games/favicon.png' });
+
+                await find_top_player_chanel.send({ embeds: [player] });
+                runing++
+
+            } catch (error) {
+                throw new Error(`Cannot create Player ${data.username} `)
+
+            }
+        }
+        console.log("renderTopPlayer Done");
+        return true
+    } catch (error) {
+        throw error;
+    }
 }
 
 // When the client is ready, run this code (only once)-
 client.once('ready', async () => {
     console.log('Ready!');
     //await wellcomeMessage(client)
-    // await coinTracking()
     cron.schedule('*/7 * * * *', function () {
         coinTracking().catch(console.dir);
     });
+    
+    // run every hour
+    cron.schedule("0 * * * *",function () {
+        renderTopPlayer().catch(console.dir);
+    })
+    // for test run diractly
+    // renderTopPlayer().catch(console.dir);
 });
