@@ -579,9 +579,12 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
     try {
         var guild = client.guilds.cache.get(GUILD_ID)
         if (guild) {
-            // var event_discord = await guild.scheduledEvents.fetch();
-            // var find_event = await event_discord.find(data => data.name == name)
-            // if (find_event) return `event ${name} already!`
+            var event_discord = await guild.scheduledEvents.fetch();
+            // console.log(event_discord)
+            var find_event = await event_discord.find(data => data.name == name)
+            console.log(find_event)
+            if (find_event) return {status : false , message : `event ${name} already!`}
+           
 
             // Get the current date
             // const currentDate = new Date(start_time);
@@ -589,7 +592,7 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
             // Get the date for tomorrow
             const start = new Date(start_time);
             // tomorrowDate.setDate(currentDate.getDate() + 1);
-
+            if (start <  Date.now()) return {status : false , message : "start_time < now"}
             // Get the date for the next two days
             const end = new Date(end_time);
             // nextTwoDaysDate.setDate(currentDate.getDate() + 2);
@@ -605,7 +608,7 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
                 image: image
             })
 
-            return create_event
+            return {status : true , data :create_event}
         } else {
             throw new Error("guild not found ")
         }
