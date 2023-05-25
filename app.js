@@ -246,7 +246,7 @@ app.post("/tigger/inviteation", async (req, res) => {
 app.post("/tigger/create_event", async (req, res) => {
     const { event_id,name,description,start_time,end_time,image,type_event='events' } = req.body
     const response = await CreateEvent(event_id,name,description,start_time,end_time,image,type_event)
-    res.status(200).json({ data: response });
+    res.status(200).json(response)
 
 })
 
@@ -579,6 +579,9 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
     try {
         var guild = client.guilds.cache.get(GUILD_ID)
         if (guild) {
+            // var event_discord = await guild.scheduledEvents.fetch();
+            // var find_event = await event_discord.find(data => data.name == name)
+            // if (find_event) return `event ${name} already!`
 
             // Get the current date
             // const currentDate = new Date(start_time);
@@ -591,7 +594,7 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
             const end = new Date(end_time);
             // nextTwoDaysDate.setDate(currentDate.getDate() + 2);
 
-            var event = await guild.scheduledEvents.create({
+            var create_event = await guild.scheduledEvents.create({
                 name: name,
                 description: description,
                 scheduledStartTime: start.toISOString(),
@@ -602,7 +605,7 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
                 image: image
             })
 
-            return event
+            return create_event
         } else {
             throw new Error("guild not found ")
         }
