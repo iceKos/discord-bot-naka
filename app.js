@@ -250,6 +250,13 @@ app.post("/tigger/create_event", async (req, res) => {
 
 })
 
+app.get("/tigger/render_topplayer", async (req, res) => {
+
+    const response = await renderTopPlayer()
+    res.status(200).json({ data: response });
+
+})
+
 
 app.listen(port, () => {
     // Login to Discord with your client's DISCORD_TOKEN
