@@ -592,10 +592,12 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
             // Get the date for tomorrow
             const start = new Date(start_time);
             // tomorrowDate.setDate(currentDate.getDate() + 1);
-            if (start <  Date.now()) return {status : false , message : "start_time < now"}
+            
             // Get the date for the next two days
             const end = new Date(end_time);
             // nextTwoDaysDate.setDate(currentDate.getDate() + 2);
+            if (start <  Date.now()) return {status : false , message : "start_time < now"}
+            if (end <  Date.now()) return {status : false , message : "end_time < now"}
 
             var create_event = await guild.scheduledEvents.create({
                 name: name,
