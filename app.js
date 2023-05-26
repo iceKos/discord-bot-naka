@@ -582,7 +582,6 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
             var event_discord = await guild.scheduledEvents.fetch();
             // console.log(event_discord)
             var find_event = await event_discord.find(data => data.name == name)
-            console.log(find_event)
             if (find_event) return {status : false , message : `event ${name} already!`}
            
 
