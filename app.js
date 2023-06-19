@@ -21,7 +21,7 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildScheduledEvents,
+        GatewayIntentBits.GuildScheduledEvents
     ],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
@@ -262,7 +262,7 @@ app.listen(port, () => {
     // Login to Discord with your client's DISCORD_TOKEN
     client.login(DISCORD_TOKEN)
         .then(() => {
-
+            console.log("Successfully logged in Discord !!!"); 
             // register command to bot discord
             const commands = [
                 new SlashCommandBuilder().setName('create_top_player').setDescription("this command use for test create topplayer only"),
@@ -302,9 +302,9 @@ app.listen(port, () => {
 
             const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
-            rest.put(Routes.applicationGuildCommands(APP_ID, GUILD_ID), { body: commands })
-                .then((data) => console.log(`Successfully registered ${data.length} application commands.`))
-                .catch(console.error);
+            // rest.put(Routes.applicationGuildCommands(APP_ID, GUILD_ID), { body: commands })
+            //     .then((data) => console.log(`Successfully registered ${data.length} application commands.`))
+            //     .catch(console.error("registered commend fall"));
 
             // handle interaction listen
             client.on('interactionCreate', async interaction => {
@@ -412,7 +412,7 @@ app.listen(port, () => {
                             }
                         }
                     } else if (interaction.isButton()) {
-
+                        
                         switch (interaction.customId) {
                             case "link_account_button": {
                                 const modal = new ModalBuilder()
@@ -896,7 +896,7 @@ function embedPlayer(data) {
 client.once('ready', async () => {
     console.log('Ready!');
     
-    await wellcomeMessage(client)
+    // await wellcomeMessage(client)
     cron.schedule('*/7 * * * *', function () {
         coinTracking().catch(console.dir);
     });
