@@ -631,8 +631,8 @@ async function wellcomeMessage(_client) {
 
 
 
-    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `link your Discord's account (Email) with our platform`, components: [row] });
-    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `After linked your Discord's account (Email) with our platform,  you need to check our documentation: https://docs.nakamoto.games/ to getting to know more about us. 🙂` });
+    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `You can link the email you used on the Nakamoto.games platform with your Discord account here.`, components: [row] });
+    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: 'After linking your Discord account (email) with our platform, you will receive the redeem code via direct message. You can use this code to redeem 10 free game items and start playing our play-to-earn (P2E) game on [our platform](https://www.nakamoto.games). \n\n Additionally, we encourage you to check out our documentation at https://docs.nakamoto.games/ to learn more about us and discover all the exciting features we have to offer. Enjoy your gaming experience! ' });
 }
 
 async function wellcomeMessageDM(member) {
@@ -644,8 +644,8 @@ async function wellcomeMessageDM(member) {
                 .setStyle(ButtonStyle.Success),
         )
 
-    await member.send({ content: `link your Discord's account (Email) with our platform`, components: [row] });
-    await member.send({ content: `After linked your Discord's account (Email) with our platform,  you need to check our documentation: https://docs.nakamoto.games/ to getting to know more about us. 🙂` });
+    await member.send({ content: `You can link the email you used on the Nakamoto.games platform with your Discord account here.`, components: [row] });
+    await member.send({ content: `After linking your Discord account (email) with our platform, you will receive the redeem code via direct message. You can use this code to redeem 10 free game items and start playing our play-to-earn (P2E) game on [our platform](https://www.nakamoto.games). \n\n Additionally, we encourage you to check out our documentation at https://docs.nakamoto.games/ to learn more about us and discover all the exciting features we have to offer. Enjoy your gaming experience! ` });
 }
 
 function validateEmail(email) {
