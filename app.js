@@ -244,8 +244,8 @@ app.post("/tigger/inviteation", async (req, res) => {
 })
 
 app.post("/tigger/create_event", async (req, res) => {
-    const { event_id,name,description,start_time,end_time,image,type_event='events' } = req.body
-    const response = await CreateEvent(event_id,name,description,start_time,end_time,image,type_event)
+    const { event_id, name, description, start_time, end_time, image, type_event = 'events' } = req.body
+    const response = await CreateEvent(event_id, name, description, start_time, end_time, image, type_event)
     res.status(200).json(response)
 
 })
@@ -262,7 +262,7 @@ app.listen(port, () => {
     // Login to Discord with your client's DISCORD_TOKEN
     client.login(DISCORD_TOKEN)
         .then(() => {
-            console.log("Successfully logged in Discord !!!"); 
+            console.log("Successfully logged in Discord !!!");
             // register command to bot discord
             const commands = [
                 new SlashCommandBuilder().setName('create_top_player').setDescription("this command use for test create topplayer only"),
@@ -412,7 +412,7 @@ app.listen(port, () => {
                             }
                         }
                     } else if (interaction.isButton()) {
-                        
+
                         switch (interaction.customId) {
                             case "link_account_button": {
                                 const modal = new ModalBuilder()
@@ -575,15 +575,15 @@ async function reaction_event(discord_account_id, exp) {
         })
 }
 
-async function CreateEvent(event_id,name,description,start_time,end_time,image,event_type) {
+async function CreateEvent(event_id, name, description, start_time, end_time, image, event_type) {
     try {
         var guild = client.guilds.cache.get(GUILD_ID)
         if (guild) {
             var event_discord = await guild.scheduledEvents.fetch();
             // console.log(event_discord)
             var find_event = await event_discord.find(data => data.name == name)
-            if (find_event) return {status : false , message : `event ${name} already!`}
-           
+            if (find_event) return { status: false, message: `event ${name} already!` }
+
 
             // Get the current date
             // const currentDate = new Date(start_time);
@@ -591,12 +591,12 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
             // Get the date for tomorrow
             const start = new Date(start_time);
             // tomorrowDate.setDate(currentDate.getDate() + 1);
-            
+
             // Get the date for the next two days
             const end = new Date(end_time);
             // nextTwoDaysDate.setDate(currentDate.getDate() + 2);
-            if (start <  Date.now()) return {status : false , message : "start_time < now"}
-            if (end <  Date.now()) return {status : false , message : "end_time < now"}
+            if (start < Date.now()) return { status: false, message: "start_time < now" }
+            if (end < Date.now()) return { status: false, message: "end_time < now" }
 
             var create_event = await guild.scheduledEvents.create({
                 name: name,
@@ -609,7 +609,7 @@ async function CreateEvent(event_id,name,description,start_time,end_time,image,e
                 image: image
             })
 
-            return {status : true , data :create_event}
+            return { status: true, data: create_event }
         } else {
             throw new Error("guild not found ")
         }
@@ -629,10 +629,13 @@ async function wellcomeMessage(_client) {
                 .setStyle(ButtonStyle.Success),
         )
 
+    const one_settion = new EmbedBuilder().setDescription('You can link the email you used on the Nakamoto.games platform with your Discord account here.');
+
+    const two_settion = new EmbedBuilder().setDescription('After linking your Discord account (email) with our platform, you will receive the redeem code via direct message. You can use this code to redeem 10 free game items and start playing our play-to-earn (P2E) game on [our platform](https://www.nakamoto.games/) .\n\nAdditionally, we encourage you to check out our documentation at https://docs.nakamoto.games/ to learn more about us and discover all the exciting features we have to offer. Enjoy your gaming experience! 🙂');
 
 
-    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: `You can link the email you used on the Nakamoto.games platform with your Discord account here.`, components: [row] });
-    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: 'After linking your Discord account (email) with our platform, you will receive the redeem code via direct message. You can use this code to redeem 10 free game items and start playing our play-to-earn (P2E) game on [our platform](https://www.nakamoto.games) . \n\n Additionally, we encourage you to check out our documentation at https://docs.nakamoto.games/ to learn more about us and discover all the exciting features we have to offer. Enjoy your gaming experience! ' });
+    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: ``, embeds: [one_settion], components: [row] });
+    await _client.channels.cache.get(WELLCOME_CHANNEL_ID).send({ content: ``, embeds: [two_settion] });
 }
 
 async function wellcomeMessageDM(member) {
@@ -644,8 +647,14 @@ async function wellcomeMessageDM(member) {
                 .setStyle(ButtonStyle.Success),
         )
 
-    await member.send({ content: `You can link the email you used on the Nakamoto.games platform with your Discord account here.`, components: [row] });
-    await member.send({ content: `After linking your Discord account (email) with our platform, you will receive the redeem code via direct message. You can use this code to redeem 10 free game items and start playing our play-to-earn (P2E) game on [our platform](https://www.nakamoto.games) . \n\n Additionally, we encourage you to check out our documentation at https://docs.nakamoto.games/ to learn more about us and discover all the exciting features we have to offer. Enjoy your gaming experience! ` });
+    const one_settion = new EmbedBuilder().setDescription('You can link the email you used on the Nakamoto.games platform with your Discord account here.');
+
+    const two_settion = new EmbedBuilder().setDescription('After linking your Discord account (email) with our platform, you will receive the redeem code via direct message. You can use this code to redeem 10 free game items and start playing our play-to-earn (P2E) game on [our platform](https://www.nakamoto.games/) .\n\nAdditionally, we encourage you to check out our documentation at https://docs.nakamoto.games/ to learn more about us and discover all the exciting features we have to offer. Enjoy your gaming experience! 🙂');
+
+
+
+    await member.send({ content: ``, embeds: [one_settion], components: [row] });
+    await member.send({ content: ``, embeds: [two_settion] });
 }
 
 function validateEmail(email) {
@@ -895,7 +904,7 @@ function embedPlayer(data) {
 // When the client is ready, run this code (only once)-
 client.once('ready', async () => {
     console.log('Ready!');
-    
+
     await wellcomeMessage(client)
     cron.schedule('*/7 * * * *', function () {
         coinTracking().catch(console.dir);
