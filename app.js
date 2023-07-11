@@ -905,7 +905,7 @@ function embedPlayer(data) {
 client.once('ready', async () => {
     console.log('Ready!');
 
-    await wellcomeMessage(client)
+    // await wellcomeMessage(client)
     cron.schedule('*/7 * * * *', function () {
         coinTracking().catch(console.dir);
     });
